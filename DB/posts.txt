@@ -1,0 +1,6 @@
+id
+title
+body
+photo
+created_by
+created_at

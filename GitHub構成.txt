@@ -1,0 +1,38 @@
+nekomap
+│
+├ pages
+│  ├ index.js
+│  ├ login.js
+│  ├ register.js
+│  ├ map.js
+│  ├ cats
+│  │   ├ new.js
+│  │   └ [id].js
+│  ├ sightings
+│  │   └ new.js
+│  ├ reports
+│  │   └ new.js
+│  ├ board
+│  │   ├ index.js
+│  │   └ new.js
+│  ├ chat
+│  │   └ [room].js
+│  └ admin
+│      └ index.js
+│
+├ components
+│  ├ MapView.js
+│  ├ CatCard.js
+│  ├ PostCard.js
+│  ├ ChatBox.js
+│
+├ lib
+│  └ supabase.js
+│
+├ styles
+│  └ globals.css
+│
+└ public
+   └ icons
+
+https://github.com/necomap/Neko-Map

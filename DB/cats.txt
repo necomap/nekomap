@@ -1,0 +1,11 @@
+id
+name
+photo
+features
+sex
+neutered
+notes
+status
+territory_id
+created_by
+created_at

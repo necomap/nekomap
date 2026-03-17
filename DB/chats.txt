@@ -1,0 +1,6 @@
+id
+room_id
+sender
+message
+photo
+created_at

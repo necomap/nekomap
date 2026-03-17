@@ -1,0 +1,30 @@
+f3wzNni_LcxiF3y
+
+https://amzfsmdezceuauskkghd.supabase.co
+
+
+anon public key
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtemZzbWRlemNldWF1c2trZ2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTM4ODMsImV4cCI6MjA4OTI2OTg4M30.hG0TT_0DIZf5FrC-qDXYkDGypHMGZ0NtF8zWeMcqsC8
+
+
+
+
+⑥ よくあるミス
+❌ エラー①
+Module not found: turf
+👉 解決
+
+npm install @turf/turf
+❌ エラー②
+Polygonが表示されない
+👉 原因
+
+lat lng の順番ミス
+必ず
+
+[緯度, 経度]
+❌ エラー③
+territory undefined
+👉 原因
+
+点が少ない（3点未満）

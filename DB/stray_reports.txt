@@ -1,0 +1,8 @@
+id
+photo
+location
+features
+comment
+tnr_planned
+tnr_by
+created_at

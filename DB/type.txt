@@ -1,0 +1,6 @@
+fight
+toilet
+house
+food
+damage
+injury

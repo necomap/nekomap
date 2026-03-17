@@ -1,0 +1,7 @@
+id
+type
+location
+photo
+description
+created_by
+created_at

@@ -1,0 +1,90 @@
+create table users (
+id uuid primary key default uuid_generate_v4(),
+nickname text,
+avatar text,
+name text,
+organization text,
+email text unique,
+phone text,
+address text,
+website text,
+territory text,
+donation_link text,
+role text default 'user',
+created_at timestamp default now()
+);
+
+create table cats (
+id uuid primary key default uuid_generate_v4(),
+name text,
+photo text,
+features text,
+sex text,
+neutered boolean,
+notes text,
+status text,
+territory_id uuid,
+created_by uuid,
+created_at timestamp default now()
+);
+
+create table territories (
+id uuid primary key default uuid_generate_v4(),
+polygon jsonb,
+color text,
+opacity float,
+created_by uuid,
+created_at timestamp default now()
+);
+
+create table sightings (
+id uuid primary key default uuid_generate_v4(),
+cat_id uuid,
+photo text,
+lat float,
+lng float,
+description text,
+created_by uuid,
+created_at timestamp default now()
+);
+
+create table stray_reports (
+id uuid primary key default uuid_generate_v4(),
+photo text,
+lat float,
+lng float,
+features text,
+comment text,
+tnr_planned boolean default false,
+tnr_by text,
+created_at timestamp default now()
+);
+
+create table problem_reports (
+id uuid primary key default uuid_generate_v4(),
+type text,
+lat float,
+lng float,
+photo text,
+description text,
+created_by uuid,
+created_at timestamp default now()
+);
+
+create table posts (
+id uuid primary key default uuid_generate_v4(),
+title text,
+body text,
+photo text,
+created_by uuid,
+created_at timestamp default now()
+);
+
+create table chats (
+id uuid primary key default uuid_generate_v4(),
+room_id uuid,
+sender uuid,
+message text,
+photo text,
+created_at timestamp default now()
+);

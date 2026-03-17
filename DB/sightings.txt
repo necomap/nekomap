@@ -1,0 +1,7 @@
+id
+cat_id
+photo
+location
+description
+created_by
+created_at

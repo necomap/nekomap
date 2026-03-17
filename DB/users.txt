@@ -1,0 +1,13 @@
+id
+nickname
+avatar
+name
+organization
+email
+phone
+address
+website
+role
+territory
+donation_link
+created_at

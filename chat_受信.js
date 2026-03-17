@@ -1,0 +1,14 @@
+supabase
+.channel("chat")
+.on(
+"postgres_changes",
+{
+event:"INSERT",
+schema:"public",
+table:"chats"
+},
+payload=>{
+setMessages(m=>[...m,payload.new])
+}
+)
+.subscribe()
