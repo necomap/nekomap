@@ -1,51 +1,188 @@
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { supabase } from "../../lib/supabase"
+import { useRouter } from "next/router"
+import { checkPostLimit } from "../../lib/checkPostLimit"
 
-export default function NewReport(){
+const TYPES = [
+  { value: "feces", label: "💩 糞尿被害" },
+  { value: "fight", label: "🐾 けんか多発" },
+  { value: "injury", label: "🩹 怪我・病気" },
+  { value: "other", label: "❓ その他" },
+]
 
-const [type,setType]=useState("")
-const [comment,setComment]=useState("")
+export default function NewReport() {
+  const router = useRouter()
+  const [type, setType] = useState("")
+  const [description, setDescription] = useState("")
+  const [photo, setPhoto] = useState(null)
+  const [lat, setLat] = useState("")
+  const [lng, setLng] = useState("")
+  const [address, setAddress] = useState("")
+  const [locationMode, setLocationMode] = useState("gps")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const mapRef = useRef(null)
+  const markerRef = useRef(null)
 
-const save = async () => {
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setLat(pos.coords.latitude)
+          setLng(pos.coords.longitude)
+        },
+        () => {
+          setLocationMode("map")
+        }
+      )
+    }
+  }, [])
 
-await supabase
-.from("problem_reports")
-.insert({
-type,
-description:comment
-})
+  useEffect(() => {
+    if (!mapRef.current) return
+    if (mapRef.current._leaflet_id) return
 
-alert("投稿しました")
+    const L = require("leaflet")
+    const map = L.map(mapRef.current).setView([35.681, 139.767], 13)
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map)
 
+    map.on("click", (e) => {
+      setLat(e.latlng.lat)
+      setLng(e.latlng.lng)
+      if (markerRef.current) markerRef.current.remove()
+      markerRef.current = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
+    })
+
+    return () => {
+      map.remove()
+    }
+  }, [])
+
+  async function handleSubmit() {
+  const limit = await checkPostLimit("trouble_reports")
+  if (!limit.ok) { setError(limit.message); return }
+
+    if (!type) { setError("種類を選択してください"); return }
+    if (!lat && !address) { setError("位置情報か住所を入力してください"); return }
+    setLoading(true)
+    let photoUrl = null
+
+    if (photo) {
+      const fileName = `${Date.now()}_${photo.name}`
+      const { error: uploadError } = await supabase.storage
+        .from("cat-photos").upload(fileName, photo)
+      if (!uploadError) {
+        const { data } = supabase.storage.from("cat-photos").getPublicUrl(fileName)
+        photoUrl = data.publicUrl
+      }
+    }
+
+    const { data: userData } = await supabase.auth.getUser()
+    const { error } = await supabase.from("trouble_reports").insert({
+      type,
+      description,
+      photo: photoUrl,
+      lat: lat ? parseFloat(lat) : null,
+      lng: lng ? parseFloat(lng) : null,
+      address,
+      created_by: userData.user?.id,
+    })
+
+    if (error) { setError("投稿に失敗しました"); setLoading(false); return }
+    router.push("/reports")
+  }
+return (
+    <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
+      <h1 style={{ marginBottom: 24 }}>⚠️ 困りごとを報告</h1>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
+        {TYPES.map((t) => (
+          <button
+            key={t.value}
+            onClick={() => setType(t.value)}
+            style={{
+              padding: "12px 8px", borderRadius: 10,
+              border: type === t.value ? "2px solid #4a90e2" : "2px solid #eee",
+              background: type === t.value ? "#e8f0fb" : "white",
+              cursor: "pointer", fontSize: 14,
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <textarea
+        placeholder="詳しい状況を教えてください"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        style={{ ...inputStyle, height: 100 }}
+      />
+
+      <label style={{ display: "block", marginBottom: 12 }}>
+        <span style={{ display: "block", marginBottom: 4, color: "#666" }}>写真（任意）</span>
+        <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files[0])} />
+      </label>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        {["gps", "map", "address"].map((mode) => (
+          <button
+            key={mode}
+            onClick={() => setLocationMode(mode)}
+            style={{
+              flex: 1, padding: "8px", borderRadius: 8, fontSize: 13,
+              border: locationMode === mode ? "2px solid #4a90e2" : "2px solid #eee",
+              background: locationMode === mode ? "#e8f0fb" : "white",
+              cursor: "pointer",
+            }}
+          >
+            {mode === "gps" ? "📍 GPS" : mode === "map" ? "🗺️ 地図" : "✏️ 住所"}
+          </button>
+        ))}
+      </div>
+
+      {locationMode === "gps" && (
+        <p style={{ fontSize: 13, color: lat ? "#2e7d32" : "#999", marginBottom: 12 }}>
+          {lat ? `✅ 位置取得済み (${parseFloat(lat).toFixed(4)}, ${parseFloat(lng).toFixed(4)})` : "位置情報を取得中..."}
+        </p>
+      )}
+
+      {locationMode === "map" && (
+        <>
+          <p style={{ fontSize: 13, color: "#666", marginBottom: 8 }}>地図をタップして場所を指定してください</p>
+          <div ref={mapRef} style={{ width: "100%", height: 240, borderRadius: 8, marginBottom: 12 }} />
+          {lat && <p style={{ fontSize: 12, color: "#2e7d32", marginBottom: 12 }}>✅ 選択済み</p>}
+        </>
+      )}
+
+      {locationMode === "address" && (
+        <input
+          placeholder="住所・地名を入力（例: 静岡県富士市○○公園）"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          style={inputStyle}
+        />
+      )}
+
+      {error && <p style={{ color: "red", marginBottom: 12 }}>{error}</p>}
+
+      <button onClick={handleSubmit} disabled={loading} style={buttonStyle}>
+        {loading ? "投稿中..." : "報告する"}
+      </button>
+      <button onClick={() => router.back()} style={{ ...buttonStyle, background: "#999", marginTop: 8 }}>
+        戻る
+      </button>
+    </div>
+  )
 }
 
-return(
-
-<div>
-
-<h2>困りごと投稿</h2>
-
-<select
-onChange={e=>setType(e.target.value)}
->
-
-<option value="fight">喧嘩</option>
-<option value="toilet">糞尿</option>
-<option value="food">ごはん</option>
-<option value="injury">怪我</option>
-
-</select>
-
-<textarea
-onChange={e=>setComment(e.target.value)}
-/>
-
-<button onClick={save}>
-投稿
-</button>
-
-</div>
-
-)
-
+const inputStyle = {
+  display: "block", width: "100%", padding: "10px 12px",
+  marginBottom: 12, border: "1px solid #ddd", borderRadius: 8,
+  fontSize: 16, boxSizing: "border-box",
+}
+const buttonStyle = {
+  display: "block", width: "100%", padding: "12px",
+  background: "#4a90e2", color: "white", border: "none",
+  borderRadius: 8, fontSize: 16, cursor: "pointer",
 }

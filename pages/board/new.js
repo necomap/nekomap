@@ -1,17 +1,32 @@
 import { useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { checkPostLimit } from "../../lib/checkPostLimit"
+
+const CATEGORIES = [
+  { value: "lost", label: "🔍 猫探し" },
+  { value: "sighting", label: "👀 目撃情報" },
+  { value: "rescue", label: "🏠 保護情報" },
+  { value: "volunteer", label: "🙋 ボランティア" },
+  { value: "tnr", label: "✂️ TNR" },
+  { value: "general", label: "💬 一般" },
+]
 
 export default function NewPost() {
   const router = useRouter()
   const [title, setTitle] = useState("")
   const [body, setBody] = useState("")
+  const [category, setCategory] = useState("general")
   const [photo, setPhoto] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
   async function handleSubmit() {
     if (!title) { setError("タイトルを入力してください"); return }
+
+    const limit = await checkPostLimit("posts")
+    if (!limit.ok) { setError(limit.message); return }
+
     setLoading(true)
     let photoUrl = null
 
@@ -27,7 +42,7 @@ export default function NewPost() {
 
     const { data: userData } = await supabase.auth.getUser()
     const { error } = await supabase.from("posts").insert({
-      title, body, photo: photoUrl,
+      title, body, category, photo: photoUrl,
       created_by: userData.user?.id,
     })
 
@@ -38,6 +53,25 @@ export default function NewPost() {
   return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
       <h1 style={{ marginBottom: 24 }}>📝 掲示板に投稿</h1>
+
+      <p style={{ marginBottom: 8, color: "#666", fontSize: 14 }}>カテゴリを選択</p>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+        {CATEGORIES.map((c) => (
+          <button
+            key={c.value}
+            onClick={() => setCategory(c.value)}
+            style={{
+              padding: "6px 12px", borderRadius: 20, fontSize: 13,
+              border: "none", cursor: "pointer",
+              background: category === c.value ? "#4a90e2" : "#f0f0f0",
+              color: category === c.value ? "white" : "#444",
+            }}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
       <input
         placeholder="タイトル（必須）"
         value={title}
@@ -54,7 +88,9 @@ export default function NewPost() {
         <span style={{ display: "block", marginBottom: 4, color: "#666" }}>写真（任意）</span>
         <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files[0])} />
       </label>
+
       {error && <p style={{ color: "red", marginBottom: 12 }}>{error}</p>}
+
       <button onClick={handleSubmit} disabled={loading} style={buttonStyle}>
         {loading ? "投稿中..." : "投稿する"}
       </button>

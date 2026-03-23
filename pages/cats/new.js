@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { Cat, Upload } from "lucide-react"
 
 export default function NewCat() {
   const router = useRouter()
@@ -64,7 +65,9 @@ export default function NewCat() {
 
   return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 24 }}>🐱 猫を登録する</h1>
+    <h1 style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 8 }}>
+      <Cat size={24} color="#e07a5f" /> 猫を登録する
+    </h1>
 
       <input
         placeholder="猫の名前（必須）"
