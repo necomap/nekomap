@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
+import { Trophy } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 export default function Ranking() {
   const [tnrRanking, setTnrRanking] = useState([])
@@ -54,9 +56,9 @@ export default function Ranking() {
 
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 8 }}>🏆 地域ランキング</h1>
+      <PageTitle icon={<Trophy size={20} color="#e07a5f" />} title="地域ランキング" />
       <p style={{ color: "#9e7b6e", marginBottom: 32, fontSize: 14 }}>
-        地域猫活動への貢献ランキングです
+        地域猫活動への貢献ランキングです。
       </p>
 
       {loading && <p style={{ textAlign: "center", color: "#999" }}>読み込み中...</p>}
@@ -74,9 +76,7 @@ export default function Ranking() {
               {medals[i] || `${i + 1}`}
             </span>
             <span style={{ flex: 1, fontSize: 15 }}>{item.name}</span>
-            <span style={{
-              fontWeight: 700, color: "#e07a5f", fontSize: 16
-            }}>
+            <span style={{ fontWeight: 700, color: "#e07a5f", fontSize: 16 }}>
               {item.count}頭
             </span>
           </div>
@@ -96,9 +96,7 @@ export default function Ranking() {
               {medals[i] || `${i + 1}`}
             </span>
             <span style={{ flex: 1, fontSize: 15 }}>{item.name}</span>
-            <span style={{
-              fontWeight: 700, color: "#e07a5f", fontSize: 16
-            }}>
+            <span style={{ fontWeight: 700, color: "#e07a5f", fontSize: 16 }}>
               {item.count}件
             </span>
           </div>

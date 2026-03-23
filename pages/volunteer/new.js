@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { Users } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 export default function NewVolunteer() {
   const router = useRouter()
@@ -14,20 +16,18 @@ export default function NewVolunteer() {
   async function handleSubmit() {
     if (!title) { setError("タイトルを入力してください"); return }
     setLoading(true)
-
     const { data: userData } = await supabase.auth.getUser()
     const { error } = await supabase.from("volunteer_requests").insert({
       title, location, description, date,
       created_by: userData.user?.id,
     })
-
     if (error) { setError("投稿に失敗しました"); setLoading(false); return }
     router.push("/volunteer")
   }
 
   return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 24 }}>🙋 ボランティア募集を投稿</h1>
+      <PageTitle icon={<Users size={20} color="#e07a5f" />} title="ボランティア募集を投稿" />
 
       <input
         placeholder="タイトル（例：捕獲手伝い募集）（必須）"
@@ -59,7 +59,7 @@ export default function NewVolunteer() {
       <button onClick={handleSubmit} disabled={loading} style={buttonStyle}>
         {loading ? "投稿中..." : "投稿する"}
       </button>
-      <button onClick={() => router.back()} style={{ ...buttonStyle, background: "#999", marginTop: 8 }}>
+      <button onClick={() => router.back()} style={{ ...buttonStyle, background: "#f0e6e0", color: "#e07a5f", marginTop: 8 }}>
         戻る
       </button>
     </div>
@@ -68,11 +68,11 @@ export default function NewVolunteer() {
 
 const inputStyle = {
   display: "block", width: "100%", padding: "10px 12px",
-  marginBottom: 12, border: "1px solid #ddd", borderRadius: 8,
-  fontSize: 16, boxSizing: "border-box",
+  marginBottom: 12, border: "1px solid #f2c4a0", borderRadius: 12,
+  fontSize: 16, boxSizing: "border-box", fontFamily: "inherit",
 }
 const buttonStyle = {
   display: "block", width: "100%", padding: "12px",
-  background: "#4a90e2", color: "white", border: "none",
-  borderRadius: 8, fontSize: 16, cursor: "pointer",
+  background: "#e07a5f", color: "white", border: "none",
+  borderRadius: 12, fontSize: 16, cursor: "pointer", fontFamily: "inherit",
 }

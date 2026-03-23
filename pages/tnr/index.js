@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { Scissors } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 export default function TNRCalendar() {
   const router = useRouter()
@@ -54,7 +56,7 @@ export default function TNRCalendar() {
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-        <h1>✂️ TNRカレンダー</h1>
+        <PageTitle icon={<Scissors size={20} color="#e07a5f" />} title="TNRカレンダー" />
         <button onClick={() => router.push("/tnr/new")} style={buttonStyle}>
           ＋ 予定追加
         </button>
@@ -66,7 +68,6 @@ export default function TNRCalendar() {
         <button onClick={() => setCurrentMonth(new Date(year, month + 1))} style={navButton}>▶</button>
       </div>
 
-      {/* 凡例 */}
       <div style={{ display: "flex", gap: 12, marginBottom: 12, fontSize: 12 }}>
         {[
           { label: "捕獲", color: "#e07a5f" },

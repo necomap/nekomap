@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { Users } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 export default function Volunteer() {
   const router = useRouter()
@@ -28,7 +30,6 @@ export default function Volunteer() {
     if (!user) { router.push("/login"); return }
     const message = prompt("応募メッセージを入力してください（任意）")
     if (message === null) return
-
     await supabase.from("volunteer_applications").insert({
       request_id: requestId,
       applicant: user.id,
@@ -40,7 +41,7 @@ export default function Volunteer() {
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-        <h1>🙋 ボランティア募集</h1>
+        <PageTitle icon={<Users size={20} color="#e07a5f" />} title="ボランティア募集" />
         <button onClick={() => router.push("/volunteer/new")} style={buttonStyle}>
           ＋ 募集する
         </button>
@@ -60,7 +61,7 @@ export default function Volunteer() {
           )}
           {req.date && (
             <p style={{ margin: "0 0 4px", fontSize: 14, color: "#666" }}>
-              📅 {req.date}
+              📅 {new Date(req.date).toLocaleString("ja-JP")}
             </p>
           )}
           {req.description && (
@@ -83,13 +84,16 @@ export default function Volunteer() {
 }
 
 const buttonStyle = {
-  padding: "10px 20px", background: "#4a90e2", color: "white",
-  border: "none", borderRadius: 8, fontSize: 14, cursor: "pointer",
+  padding: "10px 20px", background: "#e07a5f", color: "white",
+  border: "none", borderRadius: 20, fontSize: 14, cursor: "pointer",
+  fontFamily: "inherit",
 }
 const applyButton = {
   padding: "8px 16px", background: "#43a047", color: "white",
-  border: "none", borderRadius: 8, fontSize: 14, cursor: "pointer",
+  border: "none", borderRadius: 10, fontSize: 14, cursor: "pointer",
+  fontFamily: "inherit",
 }
 const cardStyle = {
-  border: "1px solid #eee", borderRadius: 12, padding: 16, marginBottom: 16,
+  border: "1px solid #f2c4a0", borderRadius: 16, padding: 16, marginBottom: 16,
+  background: "white",
 }

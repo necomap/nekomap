@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { MapPin } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 const TYPES = [
   { value: "toilet", label: "🚽 トイレ" },
@@ -17,14 +19,32 @@ export default function NewSpot() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const mapRef = useRef(null)
+  const mapInstanceRef = useRef(null)
   const markerRef = useRef(null)
 
   useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        setLat(pos.coords.latitude)
+        setLng(pos.coords.longitude)
+      })
+    }
+  }, [])
+
+  useEffect(() => {
     if (!mapRef.current) return
-    if (mapRef.current._leaflet_id) return
+    if (mapInstanceRef.current) return
 
     const L = require("leaflet")
+    delete L.Icon.Default.prototype._getIconUrl
+    L.Icon.Default.mergeOptions({
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    })
+
     const map = L.map(mapRef.current).setView([35.681, 139.767], 13)
+    mapInstanceRef.current = map
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map)
 
     map.on("click", (e) => {
@@ -36,6 +56,7 @@ export default function NewSpot() {
 
     return () => {
       map.remove()
+      mapInstanceRef.current = null
     }
   }, [])
 
@@ -43,7 +64,6 @@ export default function NewSpot() {
     if (!type) { setError("種類を選択してください"); return }
     if (!lat) { setError("地図をタップして場所を選択してください"); return }
 
-    // フード場所の場合は警告表示
     if (type === "food") {
       const ok = confirm("⚠️ フード場所の登録について\n\n悪意のある人物による毒餌被害を防ぐため、正確な位置は登録者と認証済み団体のみに表示されます。\n\n登録を続けますか？")
       if (!ok) return
@@ -64,7 +84,7 @@ export default function NewSpot() {
 
   return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 24 }}>📍 スポットを登録</h1>
+      <PageTitle icon={<MapPin size={20} color="#e07a5f" />} title="スポットを登録" />
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
         {TYPES.map((t) => (
@@ -73,7 +93,7 @@ export default function NewSpot() {
             onClick={() => setType(t.value)}
             style={{
               padding: "12px 8px", borderRadius: 10, fontFamily: "inherit",
-              border: type === t.value ? "2px solid #e07a5f" : "2px solid #eee",
+              border: type === t.value ? "2px solid #e07a5f" : "2px solid #f2c4a0",
               background: type === t.value ? "#fff0e8" : "white",
               cursor: "pointer", fontSize: 13,
             }}
@@ -107,7 +127,7 @@ export default function NewSpot() {
       <button onClick={handleSubmit} disabled={loading} style={buttonStyle}>
         {loading ? "登録中..." : "登録する"}
       </button>
-      <button onClick={() => router.back()} style={{ ...buttonStyle, background: "#999", marginTop: 8 }}>
+      <button onClick={() => router.back()} style={{ ...buttonStyle, background: "#f0e6e0", color: "#e07a5f", marginTop: 8 }}>
         戻る
       </button>
     </div>

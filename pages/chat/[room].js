@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { Send, Camera } from "lucide-react"
 
 export default function ChatRoom() {
   const router = useRouter()
@@ -22,7 +23,6 @@ export default function ChatRoom() {
   useEffect(() => {
     if (!room) return
 
-    // 既存メッセージ読み込み
     async function loadMessages() {
       const { data } = await supabase
         .from("chats")
@@ -33,7 +33,6 @@ export default function ChatRoom() {
     }
     loadMessages()
 
-    // リアルタイム受信
     const channel = supabase
       .channel("chat_" + room)
       .on(
@@ -48,7 +47,6 @@ export default function ChatRoom() {
     return () => supabase.removeChannel(channel)
   }, [room])
 
-  // 最新メッセージに自動スクロール
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
@@ -80,17 +78,21 @@ export default function ChatRoom() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      <div style={{ padding: "16px 24px", borderBottom: "1px solid #eee", display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{
+        padding: "16px 24px", borderBottom: "1px solid #f2c4a0",
+        display: "flex", alignItems: "center", gap: 12,
+        background: "rgba(255,249,245,0.95)",
+      }}>
         <button
           onClick={() => router.back()}
-          style={{ background: "none", border: "none", cursor: "pointer", color: "#4a90e2", fontSize: 16 }}
+          style={{ background: "none", border: "none", cursor: "pointer", color: "#e07a5f", fontSize: 16, fontFamily: "inherit" }}
         >
           ←
         </button>
-        <h2 style={{ margin: 0, fontSize: 18 }}>チャット</h2>
+        <h2 style={{ margin: 0, fontSize: 18, color: "#3d3230" }}>チャット</h2>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: 16, background: "#fff9f5" }}>
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -106,8 +108,9 @@ export default function ChatRoom() {
                 maxWidth: "70%",
                 padding: "10px 14px",
                 borderRadius: msg.sender === user?.id ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                background: msg.sender === user?.id ? "#4a90e2" : "#f0f0f0",
-                color: msg.sender === user?.id ? "white" : "#333",
+                background: msg.sender === user?.id ? "#e07a5f" : "white",
+                color: msg.sender === user?.id ? "white" : "#3d3230",
+                border: msg.sender === user?.id ? "none" : "1px solid #f2c4a0",
               }}
             >
               {msg.message && <p style={{ margin: 0 }}>{msg.message}</p>}
@@ -115,7 +118,7 @@ export default function ChatRoom() {
                 <img src={msg.photo} style={{ width: "100%", borderRadius: 8, marginTop: msg.message ? 8 : 0 }} />
               )}
             </div>
-            <span style={{ fontSize: 11, color: "#999", marginTop: 4 }}>
+            <span style={{ fontSize: 11, color: "#bbb", marginTop: 4 }}>
               {new Date(msg.created_at).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}
             </span>
           </div>
@@ -123,9 +126,13 @@ export default function ChatRoom() {
         <div ref={bottomRef} />
       </div>
 
-      <div style={{ padding: 16, borderTop: "1px solid #eee", display: "flex", gap: 8, alignItems: "center" }}>
-        <label style={{ cursor: "pointer", fontSize: 24 }}>
-          📷
+      <div style={{
+        padding: 16, borderTop: "1px solid #f2c4a0",
+        display: "flex", gap: 8, alignItems: "center",
+        background: "white",
+      }}>
+        <label style={{ cursor: "pointer", color: "#e07a5f" }}>
+          <Camera size={24} />
           <input
             type="file"
             accept="image/*"
@@ -134,7 +141,7 @@ export default function ChatRoom() {
           />
         </label>
         {photo && (
-          <span style={{ fontSize: 12, color: "#4a90e2" }}>📎 {photo.name}</span>
+          <span style={{ fontSize: 12, color: "#e07a5f" }}>📎 {photo.name}</span>
         )}
         <input
           placeholder="メッセージを入力"
@@ -142,19 +149,22 @@ export default function ChatRoom() {
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
           style={{
-            flex: 1, padding: "10px 14px", border: "1px solid #ddd",
+            flex: 1, padding: "10px 14px",
+            border: "1px solid #f2c4a0",
             borderRadius: 24, fontSize: 16, outline: "none",
+            fontFamily: "inherit",
           }}
         />
         <button
           onClick={handleSend}
           style={{
             width: 44, height: 44, borderRadius: "50%",
-            background: "#4a90e2", color: "white",
-            border: "none", fontSize: 20, cursor: "pointer",
+            background: "#e07a5f", color: "white",
+            border: "none", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
           }}
         >
-          ↑
+          <Send size={18} />
         </button>
       </div>
     </div>

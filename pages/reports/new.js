@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { checkPostLimit } from "../../lib/checkPostLimit"
+import { AlertTriangle } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 const TYPES = [
   { value: "feces", label: "💩 糞尿被害" },
@@ -22,6 +24,7 @@ export default function NewReport() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const mapRef = useRef(null)
+  const mapInstanceRef = useRef(null)
   const markerRef = useRef(null)
 
   useEffect(() => {
@@ -39,11 +42,20 @@ export default function NewReport() {
   }, [])
 
   useEffect(() => {
+    if (locationMode !== "map") return
     if (!mapRef.current) return
-    if (mapRef.current._leaflet_id) return
+    if (mapInstanceRef.current) return
 
     const L = require("leaflet")
+    delete L.Icon.Default.prototype._getIconUrl
+    L.Icon.Default.mergeOptions({
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    })
+
     const map = L.map(mapRef.current).setView([35.681, 139.767], 13)
+    mapInstanceRef.current = map
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map)
 
     map.on("click", (e) => {
@@ -55,13 +67,13 @@ export default function NewReport() {
 
     return () => {
       map.remove()
+      mapInstanceRef.current = null
     }
-  }, [])
+  }, [locationMode])
 
   async function handleSubmit() {
-  const limit = await checkPostLimit("trouble_reports")
-  if (!limit.ok) { setError(limit.message); return }
-
+    const limit = await checkPostLimit("trouble_reports")
+    if (!limit.ok) { setError(limit.message); return }
     if (!type) { setError("種類を選択してください"); return }
     if (!lat && !address) { setError("位置情報か住所を入力してください"); return }
     setLoading(true)
@@ -91,9 +103,10 @@ export default function NewReport() {
     if (error) { setError("投稿に失敗しました"); setLoading(false); return }
     router.push("/reports")
   }
-return (
+
+  return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 24 }}>⚠️ 困りごとを報告</h1>
+      <PageTitle icon={<AlertTriangle size={20} color="#e07a5f" />} title="困りごとを報告" />
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
         {TYPES.map((t) => (
@@ -101,9 +114,9 @@ return (
             key={t.value}
             onClick={() => setType(t.value)}
             style={{
-              padding: "12px 8px", borderRadius: 10,
-              border: type === t.value ? "2px solid #4a90e2" : "2px solid #eee",
-              background: type === t.value ? "#e8f0fb" : "white",
+              padding: "12px 8px", borderRadius: 10, fontFamily: "inherit",
+              border: type === t.value ? "2px solid #e07a5f" : "2px solid #f2c4a0",
+              background: type === t.value ? "#fff0e8" : "white",
               cursor: "pointer", fontSize: 14,
             }}
           >
@@ -120,7 +133,7 @@ return (
       />
 
       <label style={{ display: "block", marginBottom: 12 }}>
-        <span style={{ display: "block", marginBottom: 4, color: "#666" }}>写真（任意）</span>
+        <span style={{ display: "block", marginBottom: 4, color: "#9e7b6e", fontSize: 13 }}>写真（任意）</span>
         <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files[0])} />
       </label>
 
@@ -131,9 +144,9 @@ return (
             onClick={() => setLocationMode(mode)}
             style={{
               flex: 1, padding: "8px", borderRadius: 8, fontSize: 13,
-              border: locationMode === mode ? "2px solid #4a90e2" : "2px solid #eee",
-              background: locationMode === mode ? "#e8f0fb" : "white",
-              cursor: "pointer",
+              border: locationMode === mode ? "2px solid #e07a5f" : "2px solid #f2c4a0",
+              background: locationMode === mode ? "#fff0e8" : "white",
+              cursor: "pointer", fontFamily: "inherit",
             }}
           >
             {mode === "gps" ? "📍 GPS" : mode === "map" ? "🗺️ 地図" : "✏️ 住所"}
@@ -150,7 +163,7 @@ return (
       {locationMode === "map" && (
         <>
           <p style={{ fontSize: 13, color: "#666", marginBottom: 8 }}>地図をタップして場所を指定してください</p>
-          <div ref={mapRef} style={{ width: "100%", height: 240, borderRadius: 8, marginBottom: 12 }} />
+          <div ref={mapRef} style={{ width: "100%", height: 240, borderRadius: 12, marginBottom: 12, border: "1px solid #f2c4a0" }} />
           {lat && <p style={{ fontSize: 12, color: "#2e7d32", marginBottom: 12 }}>✅ 選択済み</p>}
         </>
       )}
@@ -169,7 +182,7 @@ return (
       <button onClick={handleSubmit} disabled={loading} style={buttonStyle}>
         {loading ? "投稿中..." : "報告する"}
       </button>
-      <button onClick={() => router.back()} style={{ ...buttonStyle, background: "#999", marginTop: 8 }}>
+      <button onClick={() => router.back()} style={{ ...buttonStyle, background: "#f0e6e0", color: "#e07a5f", marginTop: 8 }}>
         戻る
       </button>
     </div>
@@ -178,11 +191,11 @@ return (
 
 const inputStyle = {
   display: "block", width: "100%", padding: "10px 12px",
-  marginBottom: 12, border: "1px solid #ddd", borderRadius: 8,
-  fontSize: 16, boxSizing: "border-box",
+  marginBottom: 12, border: "1px solid #f2c4a0", borderRadius: 12,
+  fontSize: 16, boxSizing: "border-box", fontFamily: "inherit",
 }
 const buttonStyle = {
   display: "block", width: "100%", padding: "12px",
-  background: "#4a90e2", color: "white", border: "none",
-  borderRadius: 8, fontSize: 16, cursor: "pointer",
+  background: "#e07a5f", color: "white", border: "none",
+  borderRadius: 12, fontSize: 16, cursor: "pointer", fontFamily: "inherit",
 }

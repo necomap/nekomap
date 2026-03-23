@@ -2,6 +2,8 @@ import { useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { checkPostLimit } from "../../lib/checkPostLimit"
+import { ClipboardList } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 const CATEGORIES = [
   { value: "lost", label: "🔍 猫探し" },
@@ -52,9 +54,9 @@ export default function NewPost() {
 
   return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 24 }}>📝 掲示板に投稿</h1>
+      <PageTitle icon={<ClipboardList size={20} color="#e07a5f" />} title="掲示板に投稿" />
 
-      <p style={{ marginBottom: 8, color: "#666", fontSize: 14 }}>カテゴリを選択</p>
+      <p style={{ marginBottom: 8, color: "#9e7b6e", fontSize: 13 }}>カテゴリを選択</p>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
         {CATEGORIES.map((c) => (
           <button
@@ -62,9 +64,9 @@ export default function NewPost() {
             onClick={() => setCategory(c.value)}
             style={{
               padding: "6px 12px", borderRadius: 20, fontSize: 13,
-              border: "none", cursor: "pointer",
-              background: category === c.value ? "#4a90e2" : "#f0f0f0",
-              color: category === c.value ? "white" : "#444",
+              border: "none", cursor: "pointer", fontFamily: "inherit",
+              background: category === c.value ? "#e07a5f" : "#f0e6e0",
+              color: category === c.value ? "white" : "#3d3230",
             }}
           >
             {c.label}
@@ -85,7 +87,7 @@ export default function NewPost() {
         style={{ ...inputStyle, height: 160 }}
       />
       <label style={{ display: "block", marginBottom: 12 }}>
-        <span style={{ display: "block", marginBottom: 4, color: "#666" }}>写真（任意）</span>
+        <span style={{ display: "block", marginBottom: 4, color: "#9e7b6e", fontSize: 13 }}>写真（任意）</span>
         <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files[0])} />
       </label>
 
@@ -94,7 +96,7 @@ export default function NewPost() {
       <button onClick={handleSubmit} disabled={loading} style={buttonStyle}>
         {loading ? "投稿中..." : "投稿する"}
       </button>
-      <button onClick={() => router.back()} style={{ ...buttonStyle, background: "#999", marginTop: 8 }}>
+      <button onClick={() => router.back()} style={{ ...buttonStyle, background: "#f0e6e0", color: "#e07a5f", marginTop: 8 }}>
         戻る
       </button>
     </div>
@@ -103,11 +105,11 @@ export default function NewPost() {
 
 const inputStyle = {
   display: "block", width: "100%", padding: "10px 12px",
-  marginBottom: 12, border: "1px solid #ddd", borderRadius: 8,
-  fontSize: 16, boxSizing: "border-box",
+  marginBottom: 12, border: "1px solid #f2c4a0", borderRadius: 12,
+  fontSize: 16, boxSizing: "border-box", fontFamily: "inherit",
 }
 const buttonStyle = {
   display: "block", width: "100%", padding: "12px",
-  background: "#4a90e2", color: "white", border: "none",
-  borderRadius: 8, fontSize: 16, cursor: "pointer",
+  background: "#e07a5f", color: "white", border: "none",
+  borderRadius: 12, fontSize: 16, cursor: "pointer", fontFamily: "inherit",
 }

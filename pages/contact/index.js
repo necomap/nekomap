@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { Mail } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 const CATEGORIES = [
   "団体・活動者へのレベルアップ申請",
@@ -54,7 +56,7 @@ export default function Contact() {
 
   return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 8 }}>📩 お問い合わせ</h1>
+      <PageTitle icon={<Mail size={20} color="#e07a5f" />} title="お問い合わせ" />
       <p style={{ color: "#9e7b6e", fontSize: 14, marginBottom: 24, lineHeight: 1.8 }}>
         団体・活動者へのレベルアップ申請や、不具合報告などはこちらからお送りください。
         管理者が確認後、メールにてご返信いたします。

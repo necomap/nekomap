@@ -23,7 +23,7 @@ export default function Login() {
   return (
     <div style={{ maxWidth: 400, margin: "100px auto", padding: 24 }}>
       <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ fontSize: 48, marginBottom: 8 }}>🐱</div>
+        <img src="/cat-icon.png" alt="NekoMap" style={{ width: 64, height: 64, objectFit: "contain", marginBottom: 8 }} />
         <h1 style={{ color: "#e07a5f", fontSize: 28 }}>NekoMap</h1>
         <p style={{ color: "#9e7b6e", fontSize: 14 }}>ログイン</p>
       </div>

@@ -1,5 +1,7 @@
 import { useRouter } from "next/router"
 import { useState } from "react"
+import { BookOpen } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 const SECTIONS = [
   {
@@ -88,7 +90,7 @@ export default function Guide() {
 
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 8 }}>📖 使い方ガイド</h1>
+      <PageTitle icon={<BookOpen size={20} color="#e07a5f" />} title="使い方ガイド" />
       <p style={{ color: "#9e7b6e", fontSize: 14, marginBottom: 24 }}>
         NekoMapの使い方を説明します。
       </p>

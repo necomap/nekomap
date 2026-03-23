@@ -1,7 +1,8 @@
 import { useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Cat, Upload } from "lucide-react"
+import { Cat } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 export default function NewCat() {
   const router = useRouter()
@@ -23,7 +24,6 @@ export default function NewCat() {
     setLoading(true)
     let photoUrl = null
 
-    // 写真アップロード
     if (photo) {
       const fileName = `${Date.now()}_${photo.name}`
       const { error: uploadError } = await supabase.storage
@@ -42,7 +42,6 @@ export default function NewCat() {
       photoUrl = data.publicUrl
     }
 
-    // 猫情報を保存
     const { data: userData } = await supabase.auth.getUser()
     const { error } = await supabase.from("cats").insert({
       name,
@@ -65,9 +64,7 @@ export default function NewCat() {
 
   return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
-    <h1 style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 8 }}>
-      <Cat size={24} color="#e07a5f" /> 猫を登録する
-    </h1>
+      <PageTitle icon={<Cat size={20} color="#e07a5f" />} title="猫を登録する" />
 
       <input
         placeholder="猫の名前（必須）"
@@ -76,7 +73,7 @@ export default function NewCat() {
         style={inputStyle}
       />
       <textarea
-        placeholder="特徴（毛色、模様など）"
+        placeholder="特徴（毛色・模様など）"
         value={features}
         onChange={(e) => setFeatures(e.target.value)}
         style={{ ...inputStyle, height: 80 }}
@@ -109,7 +106,7 @@ export default function NewCat() {
       />
 
       <label style={{ display: "block", marginBottom: 12 }}>
-        <span style={{ display: "block", marginBottom: 4, color: "#666" }}>写真</span>
+        <span style={{ display: "block", marginBottom: 4, color: "#9e7b6e", fontSize: 13 }}>写真</span>
         <input
           type="file"
           accept="image/*"
@@ -129,7 +126,7 @@ export default function NewCat() {
 
       <button
         onClick={() => router.back()}
-        style={{ ...buttonStyle, background: "#999", marginTop: 8 }}
+        style={{ ...buttonStyle, background: "#f0e6e0", color: "#e07a5f", marginTop: 8 }}
       >
         戻る
       </button>
@@ -138,24 +135,13 @@ export default function NewCat() {
 }
 
 const inputStyle = {
-  display: "block",
-  width: "100%",
-  padding: "10px 12px",
-  marginBottom: 12,
-  border: "1px solid #ddd",
-  borderRadius: 8,
-  fontSize: 16,
-  boxSizing: "border-box",
+  display: "block", width: "100%", padding: "10px 12px",
+  marginBottom: 12, border: "1px solid #f2c4a0", borderRadius: 12,
+  fontSize: 16, boxSizing: "border-box", fontFamily: "inherit",
 }
 
 const buttonStyle = {
-  display: "block",
-  width: "100%",
-  padding: "12px",
-  background: "#4a90e2",
-  color: "white",
-  border: "none",
-  borderRadius: 8,
-  fontSize: 16,
-  cursor: "pointer",
+  display: "block", width: "100%", padding: "12px",
+  background: "#e07a5f", color: "white", border: "none",
+  borderRadius: 12, fontSize: 16, cursor: "pointer", fontFamily: "inherit",
 }

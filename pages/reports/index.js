@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { AlertTriangle } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 const TYPE_LABELS = {
   feces: "💩 糞尿被害",
@@ -83,7 +85,7 @@ export default function Reports() {
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <h1>⚠️ 困りごとマップ</h1>
+        <PageTitle icon={<AlertTriangle size={20} color="#e07a5f" />} title="困りごとマップ" />
         <button onClick={() => router.push("/reports/new")} style={buttonStyle}>
           ＋ 報告する
         </button>
@@ -131,19 +133,13 @@ export default function Reports() {
           )}
 
           {report.volunteer_name && (
-            <div style={{
-              padding: "8px 12px", background: "#e3f2fd",
-              borderRadius: 8, marginBottom: 8, fontSize: 13,
-            }}>
+            <div style={{ padding: "8px 12px", background: "#e3f2fd", borderRadius: 8, marginBottom: 8, fontSize: 13 }}>
               🙋 <b>{report.volunteer_name}</b> が対応中
             </div>
           )}
 
           {report.action && (
-            <div style={{
-              padding: "8px 12px", background: "#e8f5e9",
-              borderRadius: 8, marginBottom: 8, fontSize: 13,
-            }}>
+            <div style={{ padding: "8px 12px", background: "#e8f5e9", borderRadius: 8, marginBottom: 8, fontSize: 13 }}>
               ✅ 解決内容: {report.action}
             </div>
           )}
@@ -154,10 +150,7 @@ export default function Reports() {
           </p>
 
           {user && report.status === "未対応" && (
-            <button
-              onClick={() => handleVolunteer(report)}
-              style={volunteerBtn}
-            >
+            <button onClick={() => handleVolunteer(report)} style={volunteerBtn}>
               🙋 対応します
             </button>
           )}

@@ -16,8 +16,8 @@ export default function Register() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
-  const fileRef = useRef(null)
   const [agreed, setAgreed] = useState(false)
+  const fileRef = useRef(null)
 
   function handleAvatarChange(e) {
     const file = e.target.files[0]
@@ -86,12 +86,11 @@ export default function Register() {
   return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
       <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ fontSize: 48, marginBottom: 8 }}>🐱</div>
+        <img src="/cat-icon.png" alt="NekoMap" style={{ width: 64, height: 64, objectFit: "contain", marginBottom: 8 }} />
         <h1 style={{ color: "#e07a5f", fontSize: 28 }}>NekoMap</h1>
         <p style={{ color: "#9e7b6e", fontSize: 14 }}>新規会員登録</p>
       </div>
 
-      {/* アバター */}
       <div style={{ textAlign: "center", marginBottom: 20 }}>
         <div
           onClick={() => fileRef.current.click()}

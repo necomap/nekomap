@@ -50,12 +50,6 @@ export default function NewStray() {
       markerRef.current = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
     })
 
-    setTimeout(() => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.invalidateSize()
-      }
-    }, 500)
-
     return () => {
       map.remove()
       mapInstanceRef.current = null

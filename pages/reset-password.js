@@ -9,9 +9,7 @@ export default function ResetPassword() {
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const [mode, setMode] = useState("request") // request or update
 
-  // パスワードリセットメール送信
   async function handleRequest() {
     if (!email) { setError("メールアドレスを入力してください"); return }
     setLoading(true)
@@ -26,7 +24,6 @@ export default function ResetPassword() {
     setLoading(false)
   }
 
-  // 新しいパスワードを設定
   async function handleUpdate() {
     if (!newPassword || newPassword.length < 6) {
       setError("6文字以上のパスワードを入力してください")
@@ -48,7 +45,7 @@ export default function ResetPassword() {
   return (
     <div style={{ maxWidth: 400, margin: "100px auto", padding: 24 }}>
       <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ fontSize: 48, marginBottom: 8 }}>🐱</div>
+        <img src="/cat-icon.png" alt="NekoMap" style={{ width: 64, height: 64, objectFit: "contain", marginBottom: 8 }} />
         <h1 style={{ color: "#e07a5f", fontSize: 24 }}>
           {isUpdateMode ? "新しいパスワードを設定" : "パスワードをお忘れの方"}
         </h1>

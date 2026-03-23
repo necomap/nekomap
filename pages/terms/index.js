@@ -1,7 +1,10 @@
+import { FileText } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
+
 export default function Terms() {
   return (
     <div style={{ maxWidth: 640, margin: "40px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 8 }}>📜 利用規約</h1>
+      <PageTitle icon={<FileText size={20} color="#e07a5f" />} title="利用規約" />
       <p style={{ color: "#9e7b6e", marginBottom: 32, fontSize: 14 }}>
         最終更新日：2026年3月
       </p>

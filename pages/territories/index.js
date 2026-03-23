@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { Map } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 export default function Territories() {
   const router = useRouter()
@@ -23,7 +25,6 @@ export default function Territories() {
       .from("territories").select("*, cats(name)")
       .order("created_at", { ascending: false })
     setTerritories(t || [])
-
     const { data: c } = await supabase.from("cats").select("id, name")
     setCats(c || [])
   }
@@ -44,7 +45,7 @@ export default function Territories() {
 
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 8 }}>🗺️ ナワバリ管理</h1>
+      <PageTitle icon={<Map size={20} color="#e07a5f" />} title="ナワバリ管理" />
       <p style={{ color: "#9e7b6e", fontSize: 14, marginBottom: 24 }}>
         登録済みのナワバリと猫の紐付けを管理できます。
       </p>

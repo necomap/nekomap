@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { Settings } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 export default function EditProfile() {
   const router = useRouter()
@@ -53,11 +55,11 @@ export default function EditProfile() {
 
   return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 24 }}>👤 プロフィール編集</h1>
+      <PageTitle icon={<Settings size={20} color="#e07a5f" />} title="プロフィール編集" />
 
       <p style={{ fontSize: 13, color: "#9e7b6e", marginBottom: 16 }}>
         ※ 公開される情報：団体名・ホームページ・担当地域・寄付情報のみです。
-        住所・電話・メールは非公開です。
+        住所・電話・メール等は非公開です。
       </p>
 
       <label style={labelStyle}>ニックネーム</label>
@@ -108,7 +110,7 @@ export default function EditProfile() {
       <button onClick={handleSave} disabled={loading} style={buttonStyle}>
         {loading ? "保存中..." : "保存する"}
       </button>
-      <button onClick={() => router.back()} style={{ ...buttonStyle, background: "#999", marginTop: 8 }}>
+      <button onClick={() => router.back()} style={{ ...buttonStyle, background: "#f0e6e0", color: "#e07a5f", marginTop: 8 }}>
         戻る
       </button>
     </div>
