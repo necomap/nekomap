@@ -3,6 +3,7 @@ import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { Users } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
+import { geocodeAddress } from "../../lib/geocode"
 import "leaflet/dist/leaflet.css"
 
 export default function NewVolunteer() {
@@ -15,6 +16,8 @@ export default function NewVolunteer() {
   const [lng, setLng] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [geocoding, setGeocoding] = useState(false)
+  const [geocodeError, setGeocodeError] = useState("")
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markerRef = useRef(null)
@@ -63,6 +66,28 @@ export default function NewVolunteer() {
     }
   }, [])
 
+  async function handleGeocodeSearch() {
+    if (!location.trim()) return
+    setGeocoding(true)
+    setGeocodeError("")
+    try {
+      const result = await geocodeAddress(location)
+      if (!result) { setGeocodeError("見つかりませんでした。表記を変えてお試しください"); return }
+      setLat(result.lat)
+      setLng(result.lng)
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.setView([result.lat, result.lng], 16)
+        const L = require("leaflet")
+        if (markerRef.current) markerRef.current.remove()
+        markerRef.current = L.marker([result.lat, result.lng]).addTo(mapInstanceRef.current)
+      }
+    } catch (e) {
+      setGeocodeError("検索に失敗しました: " + e.message)
+    } finally {
+      setGeocoding(false)
+    }
+  }
+
   async function handleSubmit() {
     if (!title) { setError("タイトルを入力してください"); return }
     setLoading(true)
@@ -87,12 +112,23 @@ export default function NewVolunteer() {
         onChange={(e) => setTitle(e.target.value)}
         style={inputStyle}
       />
-      <input
-        placeholder="場所（例：○○公園・静岡県富士市）"
-        value={location}
-        onChange={(e) => setLocation(e.target.value)}
-        style={inputStyle}
-      />
+      <div style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+        <input
+          placeholder="場所（例：○○公園・静岡県富士市）"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleGeocodeSearch())}
+          style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
+        />
+        <button type="button" onClick={handleGeocodeSearch} disabled={geocoding} style={searchBtnStyle}>
+          {geocoding ? "検索中..." : "🔍 地図に反映"}
+        </button>
+      </div>
+      {geocodeError && <p style={{ color: "red", fontSize: 12, marginBottom: 8 }}>{geocodeError}</p>}
+      <p style={{ fontSize: 11, color: "#bbb", marginBottom: 12 }}>
+        場所を入力して「🔍 地図に反映」を押すと、下の地図がその場所に移動します
+      </p>
+
       <input
         type="datetime-local"
         value={date}
@@ -133,4 +169,9 @@ const buttonStyle = {
   display: "block", width: "100%", padding: "12px",
   background: "#e07a5f", color: "white", border: "none",
   borderRadius: 12, fontSize: 16, cursor: "pointer", fontFamily: "inherit",
+}
+const searchBtnStyle = {
+  padding: "0 16px", background: "#f0e6e0", color: "#e07a5f",
+  border: "none", borderRadius: 12, fontSize: 14, cursor: "pointer",
+  fontFamily: "inherit", whiteSpace: "nowrap",
 }

@@ -4,6 +4,8 @@ import { useRouter } from "next/router"
 import { checkPostLimit } from "../../lib/checkPostLimit"
 import { AlertTriangle } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
+import { geocodeAddress } from "../../lib/geocode"
+import "leaflet/dist/leaflet.css"
 
 const TYPES = [
   { value: "feces", label: "💩 糞尿被害" },
@@ -23,6 +25,8 @@ export default function NewReport() {
   const [locationMode, setLocationMode] = useState("gps")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [geocoding, setGeocoding] = useState(false)
+  const [geocodeError, setGeocodeError] = useState("")
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markerRef = useRef(null)
@@ -65,11 +69,33 @@ export default function NewReport() {
       markerRef.current = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
     })
 
+    setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize()
+      }
+    }, 500)
+
     return () => {
       map.remove()
       mapInstanceRef.current = null
     }
   }, [locationMode])
+
+  async function handleGeocodeSearch() {
+    if (!address.trim()) return
+    setGeocoding(true)
+    setGeocodeError("")
+    try {
+      const result = await geocodeAddress(address)
+      if (!result) { setGeocodeError("見つかりませんでした。表記を変えてお試しください"); return }
+      setLat(result.lat)
+      setLng(result.lng)
+    } catch (e) {
+      setGeocodeError("検索に失敗しました: " + e.message)
+    } finally {
+      setGeocoding(false)
+    }
+  }
 
   async function handleSubmit() {
     const limit = await checkPostLimit("trouble_reports")
@@ -141,7 +167,19 @@ export default function NewReport() {
         {["gps", "map", "address"].map((mode) => (
           <button
             key={mode}
-            onClick={() => setLocationMode(mode)}
+            onClick={() => {
+              // モードを切り替えたら、別モードで取得した古い座標を持ち越さないようにする
+              if (mode !== locationMode) {
+                setLat(""); setLng(""); setGeocodeError("")
+                if (mode === "gps" && navigator.geolocation) {
+                  navigator.geolocation.getCurrentPosition((pos) => {
+                    setLat(pos.coords.latitude)
+                    setLng(pos.coords.longitude)
+                  })
+                }
+              }
+              setLocationMode(mode)
+            }}
             style={{
               flex: 1, padding: "8px", borderRadius: 8, fontSize: 13,
               border: locationMode === mode ? "2px solid #e07a5f" : "2px solid #f2c4a0",
@@ -169,12 +207,22 @@ export default function NewReport() {
       )}
 
       {locationMode === "address" && (
-        <input
-          placeholder="住所・地名を入力（例: 静岡県富士市○○公園）"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          style={inputStyle}
-        />
+        <>
+          <div style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+            <input
+              placeholder="住所・地名を入力（例: 静岡県富士市○○公園）"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleGeocodeSearch())}
+              style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
+            />
+            <button type="button" onClick={handleGeocodeSearch} disabled={geocoding} style={searchBtnStyle}>
+              {geocoding ? "検索中..." : "🔍 検索"}
+            </button>
+          </div>
+          {geocodeError && <p style={{ color: "red", fontSize: 12, marginBottom: 8 }}>{geocodeError}</p>}
+          {lat && <p style={{ fontSize: 12, color: "#2e7d32", marginBottom: 12 }}>✅ 座標を取得しました</p>}
+        </>
       )}
 
       {error && <p style={{ color: "red", marginBottom: 12 }}>{error}</p>}
@@ -198,4 +246,9 @@ const buttonStyle = {
   display: "block", width: "100%", padding: "12px",
   background: "#e07a5f", color: "white", border: "none",
   borderRadius: 12, fontSize: 16, cursor: "pointer", fontFamily: "inherit",
+}
+const searchBtnStyle = {
+  padding: "0 16px", background: "#f0e6e0", color: "#e07a5f",
+  border: "none", borderRadius: 12, fontSize: 14, cursor: "pointer",
+  fontFamily: "inherit", whiteSpace: "nowrap",
 }

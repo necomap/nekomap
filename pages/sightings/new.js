@@ -5,6 +5,7 @@ import { checkPostLimit } from "../../lib/checkPostLimit"
 import { MapPin } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import CatMatchSuggestions from "../../components/CatMatchSuggestions"
+import { geocodeAddress } from "../../lib/geocode"
 import "leaflet/dist/leaflet.css"
 
 export default function NewSighting() {
@@ -17,6 +18,9 @@ export default function NewSighting() {
   const [lng, setLng] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [placeQuery, setPlaceQuery] = useState("")
+  const [geocoding, setGeocoding] = useState(false)
+  const [geocodeError, setGeocodeError] = useState("")
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markerRef = useRef(null)
@@ -70,6 +74,28 @@ export default function NewSighting() {
       mapInstanceRef.current = null
     }
   }, [])
+
+  async function handleGeocodeSearch() {
+    if (!placeQuery.trim()) return
+    setGeocoding(true)
+    setGeocodeError("")
+    try {
+      const result = await geocodeAddress(placeQuery)
+      if (!result) { setGeocodeError("見つかりませんでした。表記を変えてお試しください"); return }
+      setLat(result.lat)
+      setLng(result.lng)
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.setView([result.lat, result.lng], 16)
+        const L = require("leaflet")
+        if (markerRef.current) markerRef.current.remove()
+        markerRef.current = L.marker([result.lat, result.lng]).addTo(mapInstanceRef.current)
+      }
+    } catch (e) {
+      setGeocodeError("検索に失敗しました: " + e.message)
+    } finally {
+      setGeocoding(false)
+    }
+  }
 
   async function handleSubmit() {
     const limit = await checkPostLimit("sightings")
@@ -131,8 +157,21 @@ export default function NewSighting() {
       />
 
       <p style={{ fontSize: 13, color: "#9e7b6e", marginBottom: 8 }}>
-        地図をタップして場所を指定（任意）
+        住所・ランドマーク名で検索するか、地図をタップして場所を指定（任意）
       </p>
+      <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+        <input
+          placeholder="住所・ランドマーク名で検索（例：渋谷駅）"
+          value={placeQuery}
+          onChange={(e) => setPlaceQuery(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleGeocodeSearch())}
+          style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
+        />
+        <button type="button" onClick={handleGeocodeSearch} disabled={geocoding} style={searchBtnStyle}>
+          {geocoding ? "検索中..." : "🔍 検索"}
+        </button>
+      </div>
+      {geocodeError && <p style={{ color: "red", fontSize: 12, marginBottom: 8 }}>{geocodeError}</p>}
       <div ref={mapRef} style={{ width: "100%", height: 240, borderRadius: 12, marginBottom: 8, border: "1px solid #f2c4a0" }} />
       {lat && <p style={{ fontSize: 12, color: "#43a047", marginBottom: 12 }}>✅ 場所を選択済み ({parseFloat(lat).toFixed(4)}, {parseFloat(lng).toFixed(4)})</p>}
 
@@ -157,4 +196,9 @@ const buttonStyle = {
   display: "block", width: "100%", padding: "12px",
   background: "#e07a5f", color: "white", border: "none",
   borderRadius: 12, fontSize: 16, cursor: "pointer", fontFamily: "inherit",
+}
+const searchBtnStyle = {
+  padding: "0 16px", background: "#f0e6e0", color: "#e07a5f",
+  border: "none", borderRadius: 12, fontSize: 14, cursor: "pointer",
+  fontFamily: "inherit", whiteSpace: "nowrap",
 }
