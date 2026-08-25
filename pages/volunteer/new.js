@@ -131,7 +131,7 @@ export default function NewVolunteer() {
           style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
         />
         <button type="button" onClick={handleGeocodeSearch} disabled={geocoding} style={searchBtnStyle}>
-          {geocoding ? "検索中..." : "🔍 地図に反映"}
+          {geocoding ? "検索中..." : "🔍 検索"}
         </button>
       </div>
       {geocodeError && <p style={{ color: "red", fontSize: 12, marginBottom: 8 }}>{geocodeError}</p>}
@@ -155,7 +155,7 @@ export default function NewVolunteer() {
       )}
 
       <p style={{ fontSize: 11, color: "#bbb", marginBottom: 12 }}>
-        場所を入力して「🔍 地図に反映」を押すと候補が出るので、選ぶと下の地図が移動します
+        場所を入力して「🔍 検索」を押すと候補が出るので、選ぶと下の地図が移動します
       </p>
 
       <input
