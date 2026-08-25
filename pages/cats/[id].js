@@ -127,6 +127,39 @@ export default function CatDetail() {
     setTnrSchedules(data || [])
   }
 
+  async function editTnr(t) {
+    const captureDate = prompt("捕獲予定日/実施日", t.capture_date || "")
+    if (captureDate === null) return
+    const surgeryDate = prompt("手術日（任意・空欄可）", t.surgery_date || "")
+    if (surgeryDate === null) return
+    const hospital = prompt("病院名（任意・空欄可）", t.hospital || "")
+    if (hospital === null) return
+    const releaseDate = prompt("放猫日（任意・空欄可）", t.release_date || "")
+    if (releaseDate === null) return
+    const done = t.done || confirm("TNR完了として記録しますか？")
+
+    const { error } = await supabase.from("tnr_schedules").update({
+      capture_date: captureDate || null,
+      surgery_date: surgeryDate || null,
+      hospital: hospital || null,
+      release_date: releaseDate || null,
+      done,
+    }).eq("id", t.id)
+    if (error) { alert("更新に失敗しました: " + error.message); return }
+
+    const { data } = await supabase
+      .from("tnr_schedules").select("*").eq("cat_id", id)
+      .order("created_at", { ascending: false })
+    setTnrSchedules(data || [])
+  }
+
+  async function deleteTnr(t) {
+    if (!confirm("このTNR記録を削除しますか？")) return
+    const { error } = await supabase.from("tnr_schedules").delete().eq("id", t.id)
+    if (error) { alert("削除に失敗しました: " + error.message); return }
+    setTnrSchedules(tnrSchedules.filter((x) => x.id !== t.id))
+  }
+
   if (!cat) return (
     <div style={{ textAlign: "center", marginTop: 80 }}>
       <p style={{ color: "#9e7b6e" }}>読み込み中...</p>
@@ -181,17 +214,6 @@ export default function CatDetail() {
         </div>
       )}
 
-      {!cat.memorial && isOwnerOrAdmin && (
-        <button onClick={markMemorial} style={{ ...actionBtn, background: "#6b7280", marginBottom: 16 }}>
-          🕊️ 訃報として記録する
-        </button>
-      )}
-      {!cat.memorial && user && !isOwnerOrAdmin && (
-        <button onClick={reportDeath} style={{ ...actionBtn, background: "#f0e6e0", color: "#e07a5f", marginBottom: 16 }}>
-          訃報の可能性を報告する
-        </button>
-      )}
-
       <div style={cardStyle}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
@@ -203,31 +225,41 @@ export default function CatDetail() {
         </table>
       </div>
 
-      {user && (
-        <button onClick={addTnr} style={{ ...actionBtn, background: "#7b61ff", marginBottom: 16 }}>
-          ✂️ TNR予定を登録する
-        </button>
-      )}
-
-      {tnrSchedules.length > 0 && (
-        <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <h3 style={sectionTitle}>✂️ TNR記録</h3>
-          {tnrSchedules.map((t) => (
-            <div key={t.id} style={{ ...tagStyle, marginBottom: 6 }}>
-              <p style={{ margin: "0 0 4px", fontWeight: 500 }}>
-                {t.done ? "✅" : "📅"} {t.cat_name}
-              </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, fontSize: 12 }}>
-                {t.capture_date && <span style={{ color: "#e07a5f" }}>捕獲: {t.capture_date}</span>}
-                {t.surgery_date && <span style={{ color: "#7b61ff" }}>手術: {t.surgery_date}</span>}
-                {t.hospital && <span style={{ color: "#888" }}>🏥 {t.hospital}</span>}
-                {t.release_date && <span style={{ color: "#43a047" }}>放猫: {t.release_date}</span>}
-              </div>
-              {t.organization && <p style={{ margin: "4px 0 0", fontSize: 12, color: "#4a90e2" }}>{t.organization}</p>}
-            </div>
-          ))}
+          {user && (
+            <button onClick={addTnr} style={editBtn}>＋ 追加</button>
+          )}
         </div>
-      )}
+
+        {tnrSchedules.length === 0 && <p style={{ color: "#bbb", fontSize: 14 }}>記録はありません</p>}
+
+        {tnrSchedules.map((t) => (
+          <div key={t.id} style={{ ...tagStyle, marginBottom: 6 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: "0 0 4px", fontWeight: 500 }}>
+                  {t.done ? "✅" : "📅"} {t.cat_name}
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 4, fontSize: 12 }}>
+                  {t.capture_date && <span style={{ color: "#e07a5f" }}>捕獲: {t.capture_date}</span>}
+                  {t.surgery_date && <span style={{ color: "#7b61ff" }}>手術: {t.surgery_date}</span>}
+                  {t.hospital && <span style={{ color: "#888" }}>🏥 {t.hospital}</span>}
+                  {t.release_date && <span style={{ color: "#43a047" }}>放猫: {t.release_date}</span>}
+                </div>
+                {t.organization && <p style={{ margin: "4px 0 0", fontSize: 12, color: "#4a90e2" }}>{t.organization}</p>}
+              </div>
+              {user && (
+                <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                  <button onClick={() => editTnr(t)} style={smallBtn}>編集</button>
+                  <button onClick={() => deleteTnr(t)} style={{ ...smallBtn, color: "#e05252", borderColor: "#f5c2c2" }}>削除</button>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
 
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -276,6 +308,17 @@ export default function CatDetail() {
           </div>
         ))}
       </div>
+
+      {!cat.memorial && isOwnerOrAdmin && (
+        <button onClick={markMemorial} style={smallGhostBtn}>
+          🕊️ 訃報として記録する
+        </button>
+      )}
+      {!cat.memorial && user && !isOwnerOrAdmin && (
+        <button onClick={reportDeath} style={smallGhostBtn}>
+          訃報の可能性を報告する
+        </button>
+      )}
     </div>
   )
 }
@@ -319,4 +362,14 @@ const memorialBanner = {
 const reportBanner = {
   padding: 12, marginBottom: 12, borderRadius: 12,
   background: "#fff3e0", border: "1px solid #ffcc80",
+}
+const smallBtn = {
+  padding: "4px 10px", background: "white", color: "#9e7b6e",
+  border: "1px solid #f2c4a0", borderRadius: 8, cursor: "pointer",
+  fontSize: 11, fontFamily: "inherit", whiteSpace: "nowrap",
+}
+const smallGhostBtn = {
+  display: "block", margin: "32px auto 0", padding: "8px 18px",
+  background: "none", color: "#9e9e9e", border: "1px solid #e0e0e0",
+  borderRadius: 20, fontSize: 12, cursor: "pointer", fontFamily: "inherit",
 }
