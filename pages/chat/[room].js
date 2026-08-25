@@ -10,18 +10,44 @@ export default function ChatRoom() {
   const [text, setText] = useState("")
   const [user, setUser] = useState(null)
   const [photo, setPhoto] = useState(null)
+  const [otherUser, setOtherUser] = useState(null)
+  const [accessChecked, setAccessChecked] = useState(false)
+  const [hasAccess, setHasAccess] = useState(true)
   const bottomRef = useRef(null)
 
   useEffect(() => {
     async function init() {
       const { data } = await supabase.auth.getUser()
+      if (!data.user) { router.push("/login"); return }
       setUser(data.user)
     }
     init()
   }, [])
 
+  // 部屋の当事者を確認し、相手のニックネームを取得する
   useEffect(() => {
-    if (!room) return
+    if (!room || !user) return
+
+    async function loadRoom() {
+      const { data: roomData } = await supabase
+        .from("chat_rooms")
+        .select("user_a, user_b")
+        .eq("id", room)
+        .maybeSingle()
+
+      if (!roomData) { setHasAccess(false); setAccessChecked(true); return }
+
+      const otherId = roomData.user_a === user.id ? roomData.user_b : roomData.user_a
+      const { data: otherProfile } = await supabase
+        .from("users").select("nickname, avatar").eq("id", otherId).single()
+      setOtherUser(otherProfile)
+      setAccessChecked(true)
+    }
+    loadRoom()
+  }, [room, user])
+
+  useEffect(() => {
+    if (!room || !hasAccess) return
 
     async function loadMessages() {
       const { data } = await supabase
@@ -45,7 +71,7 @@ export default function ChatRoom() {
       .subscribe()
 
     return () => supabase.removeChannel(channel)
-  }, [room])
+  }, [room, hasAccess])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -76,6 +102,25 @@ export default function ChatRoom() {
     setText("")
   }
 
+  if (!accessChecked) {
+    return (
+      <div style={{ textAlign: "center", marginTop: 80 }}>
+        <p style={{ color: "#9e7b6e" }}>読み込み中...</p>
+      </div>
+    )
+  }
+
+  if (!hasAccess) {
+    return (
+      <div style={{ textAlign: "center", marginTop: 80, padding: 24 }}>
+        <p style={{ color: "#9e7b6e", marginBottom: 16 }}>このチャットにはアクセスできません</p>
+        <button onClick={() => router.push("/board")} style={{ background: "none", border: "none", cursor: "pointer", color: "#e07a5f", fontSize: 16, fontFamily: "inherit" }}>
+          ← 掲示板に戻る
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <div style={{
@@ -89,7 +134,9 @@ export default function ChatRoom() {
         >
           ←
         </button>
-        <h2 style={{ margin: 0, fontSize: 18, color: "#3d3230" }}>チャット</h2>
+        <h2 style={{ margin: 0, fontSize: 18, color: "#3d3230" }}>
+          💬 {otherUser?.nickname || "チャット"}
+        </h2>
       </div>
 
       <div style={{ flex: 1, overflowY: "auto", padding: 16, background: "#fff9f5" }}>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { getOrCreateDmRoom } from "../../lib/chatRoom"
 
 const CATEGORIES = [
   { value: "all", label: "すべて" },
@@ -18,6 +19,7 @@ export default function BoardDetail() {
   const [post, setPost] = useState(null)
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [contacting, setContacting] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -56,6 +58,20 @@ export default function BoardDetail() {
 
     alert("通報しました。ご協力ありがとうございます。")
     router.push("/board")
+  }
+
+  async function handleContact() {
+    if (!user) { router.push("/login"); return }
+    if (!post.created_by || user.id === post.created_by) return
+
+    setContacting(true)
+    try {
+      const roomId = await getOrCreateDmRoom(user.id, post.created_by)
+      router.push(`/chat/${roomId}`)
+    } catch (e) {
+      alert("メッセージ機能の準備に失敗しました: " + e.message)
+      setContacting(false)
+    }
   }
 
   if (loading) {
@@ -109,7 +125,18 @@ export default function BoardDetail() {
         {post.body}
       </p>
 
-      <button onClick={handleReport} style={reportBtn}>🚩 この投稿を通報する</button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+        {post.created_by && user?.id !== post.created_by ? (
+          <button onClick={handleContact} disabled={contacting} style={contactBtn}>
+            {contacting
+              ? "準備中..."
+              : post.category === "volunteer"
+                ? "🙋 応募する・コンタクトを取る"
+                : "💬 投稿者にコンタクトを取る"}
+          </button>
+        ) : <span />}
+        <button onClick={handleReport} style={smallReportBtn}>🚩 通報</button>
+      </div>
     </div>
   )
 }
@@ -122,8 +149,13 @@ const badgeStyle = {
   display: "inline-block", fontSize: 12, padding: "3px 10px",
   background: "#f0e6e0", color: "#e07a5f", borderRadius: 12,
 }
-const reportBtn = {
-  display: "block", width: "100%", padding: "12px",
-  background: "none", color: "#999", border: "1px solid #eee",
-  borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "inherit",
+const contactBtn = {
+  padding: "10px 18px", background: "#e07a5f", color: "white",
+  border: "none", borderRadius: 20, fontSize: 14, cursor: "pointer",
+  fontFamily: "inherit",
+}
+const smallReportBtn = {
+  padding: "6px 12px", background: "none", color: "#bbb",
+  border: "1px solid #eee", borderRadius: 20, fontSize: 12,
+  cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
 }
