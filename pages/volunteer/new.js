@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { Users } from "lucide-react"
@@ -10,8 +10,51 @@ export default function NewVolunteer() {
   const [location, setLocation] = useState("")
   const [description, setDescription] = useState("")
   const [date, setDate] = useState("")
+  const [lat, setLat] = useState("")
+  const [lng, setLng] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const mapRef = useRef(null)
+  const mapInstanceRef = useRef(null)
+  const markerRef = useRef(null)
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        setLat(pos.coords.latitude)
+        setLng(pos.coords.longitude)
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!mapRef.current) return
+    if (mapInstanceRef.current) return
+
+    const L = require("leaflet")
+    delete L.Icon.Default.prototype._getIconUrl
+    L.Icon.Default.mergeOptions({
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    })
+
+    const map = L.map(mapRef.current).setView([35.681, 139.767], 13)
+    mapInstanceRef.current = map
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map)
+
+    map.on("click", (e) => {
+      setLat(e.latlng.lat)
+      setLng(e.latlng.lng)
+      if (markerRef.current) markerRef.current.remove()
+      markerRef.current = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
+    })
+
+    return () => {
+      map.remove()
+      mapInstanceRef.current = null
+    }
+  }, [])
 
   async function handleSubmit() {
     if (!title) { setError("タイトルを入力してください"); return }
@@ -19,6 +62,8 @@ export default function NewVolunteer() {
     const { data: userData } = await supabase.auth.getUser()
     const { error } = await supabase.from("volunteer_requests").insert({
       title, location, description, date,
+      lat: lat ? parseFloat(lat) : null,
+      lng: lng ? parseFloat(lng) : null,
       created_by: userData.user?.id,
     })
     if (error) { setError("投稿に失敗しました"); setLoading(false); return }
@@ -53,6 +98,12 @@ export default function NewVolunteer() {
         onChange={(e) => setDescription(e.target.value)}
         style={{ ...inputStyle, height: 160 }}
       />
+
+      <p style={{ fontSize: 13, color: "#9e7b6e", marginBottom: 8 }}>
+        地図をタップして集合場所を指定（任意）
+      </p>
+      <div ref={mapRef} style={{ width: "100%", height: 240, borderRadius: 12, marginBottom: 8, border: "1px solid #f2c4a0" }} />
+      {lat && <p style={{ fontSize: 12, color: "#43a047", marginBottom: 12 }}>✅ 場所を選択済み ({parseFloat(lat).toFixed(4)}, {parseFloat(lng).toFixed(4)})</p>}
 
       {error && <p style={{ color: "red", marginBottom: 12 }}>{error}</p>}
 

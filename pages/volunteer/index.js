@@ -74,6 +74,16 @@ export default function Volunteer() {
               {req.description}
             </p>
           )}
+          {req.lat && req.lng && (
+            <a
+              href={`https://www.google.com/maps?q=${req.lat},${req.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={mapLinkStyle}
+            >
+              📍 地図で場所を確認する
+            </a>
+          )}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <p style={{ margin: 0, fontSize: 12, color: "#bbb" }}>
               {new Date(req.created_at).toLocaleDateString("ja-JP")}
@@ -103,4 +113,8 @@ const applyButton = {
 const cardStyle = {
   border: "1px solid #f2c4a0", borderRadius: 16, padding: 16, marginBottom: 16,
   background: "white",
+}
+const mapLinkStyle = {
+  display: "inline-block", marginBottom: 12, fontSize: 13,
+  color: "#1565c0", textDecoration: "none",
 }
