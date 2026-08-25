@@ -4,6 +4,7 @@ import { useRouter } from "next/router"
 import { Cat } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import CatMatchSuggestions from "../../components/CatMatchSuggestions"
+import "leaflet/dist/leaflet.css"
 
 export default function NewStray() {
   const router = useRouter()
@@ -50,6 +51,12 @@ export default function NewStray() {
       if (markerRef.current) markerRef.current.remove()
       markerRef.current = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
     })
+
+    setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize()
+      }
+    }, 500)
 
     return () => {
       map.remove()

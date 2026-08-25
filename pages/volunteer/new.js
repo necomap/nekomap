@@ -3,6 +3,7 @@ import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { Users } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
+import "leaflet/dist/leaflet.css"
 
 export default function NewVolunteer() {
   const router = useRouter()
@@ -49,6 +50,12 @@ export default function NewVolunteer() {
       if (markerRef.current) markerRef.current.remove()
       markerRef.current = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
     })
+
+    setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize()
+      }
+    }, 500)
 
     return () => {
       map.remove()

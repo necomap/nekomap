@@ -5,6 +5,7 @@ import { checkPostLimit } from "../../lib/checkPostLimit"
 import { MapPin } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import CatMatchSuggestions from "../../components/CatMatchSuggestions"
+import "leaflet/dist/leaflet.css"
 
 export default function NewSighting() {
   const router = useRouter()
