@@ -1,11 +1,13 @@
 import { useState } from "react"
 import { supabase } from "../lib/supabase"
 import { useRouter } from "next/router"
+import { Eye, EyeOff } from "lucide-react"
 
 export default function ResetPassword() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [newPassword, setNewPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -74,13 +76,23 @@ export default function ResetPassword() {
           <p style={{ color: "#9e7b6e", fontSize: 14, marginBottom: 16 }}>
             新しいパスワードを入力してください。
           </p>
-          <input
-            type="password"
-            placeholder="新しいパスワード（6文字以上）"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            style={inputStyle}
-          />
+          <div style={{ position: "relative" }}>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="新しいパスワード（6文字以上）"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              style={{ ...inputStyle, paddingRight: 44 }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
+              style={eyeButtonStyle}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
           {error && <p style={{ color: "red", marginBottom: 12 }}>{error}</p>}
           {message && <p style={{ color: "#43a047", marginBottom: 12 }}>{message}</p>}
           <button onClick={handleUpdate} disabled={loading} style={buttonStyle}>
@@ -103,6 +115,11 @@ const inputStyle = {
   display: "block", width: "100%", padding: "10px 12px",
   marginBottom: 12, border: "1px solid #f2c4a0", borderRadius: 12,
   fontSize: 16, boxSizing: "border-box", fontFamily: "inherit",
+}
+const eyeButtonStyle = {
+  position: "absolute", right: 8, top: "50%", transform: "translateY(-58%)",
+  background: "none", border: "none", cursor: "pointer",
+  color: "#9e7b6e", padding: 6, display: "flex", alignItems: "center",
 }
 const buttonStyle = {
   display: "block", width: "100%", padding: "12px",

@@ -1,6 +1,7 @@
 import { useState, useRef } from "react"
 import { supabase } from "../lib/supabase"
 import { useRouter } from "next/router"
+import { Eye, EyeOff } from "lucide-react"
 
 export default function Register() {
   const router = useRouter()
@@ -17,6 +18,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
   const [agreed, setAgreed] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const fileRef = useRef(null)
 
   function handleAvatarChange(e) {
@@ -114,7 +116,23 @@ export default function Register() {
       <input placeholder="ニックネーム（公開されます）" value={nickname} onChange={(e) => setNickname(e.target.value)} style={inputStyle} />
       <input placeholder="代表者名・お名前（非公開）" value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
       <input type="email" placeholder="メールアドレス（非公開）" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} />
-      <input type="password" placeholder="パスワード（6文字以上）" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} />
+      <div style={{ position: "relative" }}>
+        <input
+          type={showPassword ? "text" : "password"}
+          placeholder="パスワード（6文字以上）"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          style={{ ...inputStyle, paddingRight: 44 }}
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword((v) => !v)}
+          aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
+          style={eyeButtonStyle}
+        >
+          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
+      </div>
 
       <p style={{ fontSize: 13, color: "#9e7b6e", fontWeight: 500, marginBottom: 8, marginTop: 8 }}>任意項目</p>
       <input placeholder="団体名" value={organization} onChange={(e) => setOrganization(e.target.value)} style={inputStyle} />
@@ -167,6 +185,11 @@ const inputStyle = {
   display: "block", width: "100%", padding: "10px 12px",
   marginBottom: 12, border: "1px solid #f2c4a0", borderRadius: 12,
   fontSize: 16, boxSizing: "border-box", fontFamily: "inherit",
+}
+const eyeButtonStyle = {
+  position: "absolute", right: 8, top: "50%", transform: "translateY(-58%)",
+  background: "none", border: "none", cursor: "pointer",
+  color: "#9e7b6e", padding: 6, display: "flex", alignItems: "center",
 }
 const buttonStyle = {
   display: "block", width: "100%", padding: "12px",
