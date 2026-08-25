@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import BulkRegister from "../../components/BulkRegister"
+import { getImageEmbedding, embeddingToVectorLiteral } from "../../lib/catFaceAI"
 
 const TABS = [
   { key: "posts", label: "掲示板" },
@@ -12,6 +13,7 @@ const TABS = [
   { key: "users", label: "ユーザー" },
   { key: "blacklist", label: "BAN一覧" },
   { key: "bulk", label: "一括登録" },  // 追加
+  { key: "faceai", label: "顔AI設定" },  // 追加（猫顔識別機能の再計算）
 ]
 
 export default function Admin() {
@@ -21,6 +23,9 @@ export default function Admin() {
   const [loading, setLoading] = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [faceAiTargets, setFaceAiTargets] = useState(null) // null = 未確認
+  const [faceAiRunning, setFaceAiRunning] = useState(false)
+  const [faceAiProgress, setFaceAiProgress] = useState({ done: 0, total: 0, failed: 0 })
 
   useEffect(() => {
     async function checkAdmin() {
@@ -39,8 +44,48 @@ export default function Admin() {
   // 管理者確認が取れるまではデータ取得自体を行わない
   useEffect(() => {
     if (!isAdmin) return
+    if (tab === "faceai") { loadFaceAiTargets(); return }
     loadData()
   }, [tab, isAdmin])
+
+  // 写真はあるがAI用の特徴データ(face_embedding)がまだ計算されていない猫を調べる
+  async function loadFaceAiTargets() {
+    setLoading(true)
+    const { data } = await supabase
+      .from("cats")
+      .select("id, name, photo")
+      .is("face_embedding", null)
+      .not("photo", "is", null)
+      .order("created_at", { ascending: false })
+    setFaceAiTargets(data || [])
+    setLoading(false)
+  }
+
+  // 対象の猫を1匹ずつ処理し、写真から特徴データを計算してDBに保存する
+  async function runFaceAiBackfill() {
+    if (!faceAiTargets || faceAiTargets.length === 0) return
+    setFaceAiRunning(true)
+    setFaceAiProgress({ done: 0, total: faceAiTargets.length, failed: 0 })
+
+    let failed = 0
+    for (let i = 0; i < faceAiTargets.length; i++) {
+      const cat = faceAiTargets[i]
+      try {
+        const embedding = await getImageEmbedding(cat.photo)
+        await supabase.from("cats").update({
+          face_embedding: embeddingToVectorLiteral(embedding),
+          face_embedding_updated_at: new Date().toISOString(),
+        }).eq("id", cat.id)
+      } catch (e) {
+        console.log(`顔AI解析失敗（${cat.name}）:`, e.message)
+        failed++
+      }
+      setFaceAiProgress({ done: i + 1, total: faceAiTargets.length, failed })
+    }
+
+    setFaceAiRunning(false)
+    loadFaceAiTargets()
+  }
 
   async function loadData() {
     setLoading(true)
@@ -135,7 +180,61 @@ export default function Admin() {
       {loading && <p style={{ textAlign: "center", color: "#999" }}>読み込み中...</p>}
 
       {tab === "bulk" && <BulkRegister />}
-      {tab !== "bulk" && data.map((item) => (
+
+      {tab === "faceai" && (
+        <div style={cardStyle}>
+          <p style={{ margin: "0 0 8px", fontWeight: 500 }}>🧠 猫顔AI識別 - 特徴データの再計算</p>
+          <p style={{ margin: "0 0 12px", fontSize: 13, color: "#666", lineHeight: 1.6 }}>
+            目撃情報・野良猫報告の投稿時に「この子かも」と候補を提示するAI機能のための、
+            猫ごとの特徴データ（face_embedding）を計算します。写真がある猫のうち、
+            まだ計算されていないものだけが対象です（新規登録時は自動で計算されます）。
+            この処理はブラウザ上で行われ、追加費用はかかりません。
+          </p>
+
+          {faceAiTargets === null && <p style={{ fontSize: 13, color: "#999" }}>確認中...</p>}
+
+          {faceAiTargets !== null && (
+            <>
+              <p style={{ fontSize: 13, color: "#3d3230", marginBottom: 12 }}>
+                対象: <strong>{faceAiTargets.length}匹</strong>
+              </p>
+
+              {faceAiTargets.length > 0 && (
+                <button
+                  onClick={runFaceAiBackfill}
+                  disabled={faceAiRunning}
+                  style={{ ...btnGreen, padding: "10px 20px", fontSize: 14 }}
+                >
+                  {faceAiRunning
+                    ? `処理中... (${faceAiProgress.done}/${faceAiProgress.total})`
+                    : "顔データを一括計算する"}
+                </button>
+              )}
+
+              {!faceAiRunning && faceAiProgress.total > 0 && (
+                <p style={{ fontSize: 12, color: "#666", marginTop: 8 }}>
+                  完了: {faceAiProgress.done}件（失敗: {faceAiProgress.failed}件）
+                </p>
+              )}
+
+              {faceAiTargets.length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  {faceAiTargets.map((c) => (
+                    <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, fontSize: 13 }}>
+                      {c.photo
+                        ? <img src={c.photo} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} />
+                        : <span>🐱</span>}
+                      {c.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {!["bulk", "faceai"].includes(tab) && data.map((item) => (
         <div key={item.id} style={cardStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div style={{ flex: 1, marginRight: 12 }}>

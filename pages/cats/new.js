@@ -3,6 +3,7 @@ import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { Cat } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
+import { getImageEmbedding, embeddingToVectorLiteral } from "../../lib/catFaceAI"
 
 export default function NewCat() {
   const router = useRouter()
@@ -14,6 +15,7 @@ export default function NewCat() {
   const [photo, setPhoto] = useState(null)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [aiStatus, setAiStatus] = useState("idle") // idle | analyzing | done | failed
 
   async function handleSubmit() {
     if (!name) {
@@ -23,6 +25,7 @@ export default function NewCat() {
 
     setLoading(true)
     let photoUrl = null
+    let faceEmbedding = null
 
     if (photo) {
       const fileName = `${Date.now()}_${photo.name}`
@@ -40,6 +43,17 @@ export default function NewCat() {
         .from("cat-photos")
         .getPublicUrl(fileName)
       photoUrl = data.publicUrl
+
+      // AIで見た目の特徴を解析（猫顔識別機能用）。失敗しても登録は続行する。
+      try {
+        setAiStatus("analyzing")
+        const embedding = await getImageEmbedding(photo)
+        faceEmbedding = embeddingToVectorLiteral(embedding)
+        setAiStatus("done")
+      } catch (e) {
+        console.log("AI解析に失敗（登録は続行します）:", e.message)
+        setAiStatus("failed")
+      }
     }
 
     const { data: userData } = await supabase.auth.getUser()
@@ -50,6 +64,8 @@ export default function NewCat() {
       neutered,
       notes,
       photo: photoUrl,
+      face_embedding: faceEmbedding,
+      face_embedding_updated_at: faceEmbedding ? new Date().toISOString() : null,
       created_by: userData.user?.id,
     })
 
@@ -112,6 +128,9 @@ export default function NewCat() {
           accept="image/*"
           onChange={(e) => setPhoto(e.target.files[0])}
         />
+        <span style={{ display: "block", marginTop: 4, color: "#bbb", fontSize: 12 }}>
+          写真をもとにAIが見た目の特徴を解析し、目撃投稿時の「この子かも」候補表示に使われます
+        </span>
       </label>
 
       {error && <p style={{ color: "red", marginBottom: 12 }}>{error}</p>}
@@ -121,7 +140,9 @@ export default function NewCat() {
         disabled={loading}
         style={buttonStyle}
       >
-        {loading ? "登録中..." : "登録する"}
+        {loading
+          ? (aiStatus === "analyzing" ? "AI解析中..." : "登録中...")
+          : "登録する"}
       </button>
 
       <button

@@ -3,6 +3,7 @@ import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { Cat } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
+import CatMatchSuggestions from "../../components/CatMatchSuggestions"
 
 export default function NewStray() {
   const router = useRouter()
@@ -115,6 +116,11 @@ export default function NewStray() {
         <span style={{ display: "block", marginBottom: 4, color: "#9e7b6e", fontSize: 13 }}>写真（任意）</span>
         <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files[0])} />
       </label>
+
+      <CatMatchSuggestions
+        photo={photo}
+        onSelect={(cat) => window.open(`/cats/${cat.id}`, "_blank")}
+      />
 
       <p style={{ fontSize: 13, color: "#9e7b6e", marginBottom: 8 }}>
         地図をタップして場所を指定（任意）

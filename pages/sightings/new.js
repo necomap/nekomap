@@ -4,6 +4,7 @@ import { useRouter } from "next/router"
 import { checkPostLimit } from "../../lib/checkPostLimit"
 import { MapPin } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
+import CatMatchSuggestions from "../../components/CatMatchSuggestions"
 
 export default function NewSighting() {
   const router = useRouter()
@@ -121,6 +122,12 @@ export default function NewSighting() {
         <span style={{ display: "block", marginBottom: 4, color: "#9e7b6e", fontSize: 13 }}>写真（任意）</span>
         <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files[0])} />
       </label>
+
+      <CatMatchSuggestions
+        photo={photo}
+        selectedCatId={catId}
+        onSelect={(cat) => setCatId(cat.id)}
+      />
 
       <p style={{ fontSize: 13, color: "#9e7b6e", marginBottom: 8 }}>
         地図をタップして場所を指定（任意）
