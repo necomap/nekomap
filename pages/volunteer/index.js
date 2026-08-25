@@ -3,11 +3,13 @@ import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { Users } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
+import { getOrCreateDmRoom } from "../../lib/chatRoom"
 
 export default function Volunteer() {
   const router = useRouter()
   const [requests, setRequests] = useState([])
   const [user, setUser] = useState(null)
+  const [applyingId, setApplyingId] = useState(null)
 
   useEffect(() => {
     async function init() {
@@ -26,16 +28,19 @@ export default function Volunteer() {
     setRequests(data || [])
   }
 
-  async function handleApply(requestId) {
+  async function handleApply(req) {
     if (!user) { router.push("/login"); return }
-    const message = prompt("応募メッセージを入力してください（任意）")
-    if (message === null) return
-    await supabase.from("volunteer_applications").insert({
-      request_id: requestId,
-      applicant: user.id,
-      message,
-    })
-    alert("応募しました！")
+    if (!req.created_by) { alert("募集者情報が見つかりませんでした"); return }
+    if (user.id === req.created_by) return
+
+    setApplyingId(req.id)
+    try {
+      const roomId = await getOrCreateDmRoom(user.id, req.created_by)
+      router.push(`/chat/${roomId}`)
+    } catch (e) {
+      alert("メッセージ機能の準備に失敗しました: " + e.message)
+      setApplyingId(null)
+    }
   }
 
   return (
@@ -73,9 +78,11 @@ export default function Volunteer() {
             <p style={{ margin: 0, fontSize: 12, color: "#bbb" }}>
               {new Date(req.created_at).toLocaleDateString("ja-JP")}
             </p>
-            <button onClick={() => handleApply(req.id)} style={applyButton}>
-              応募する
-            </button>
+            {req.created_by && user?.id !== req.created_by && (
+              <button onClick={() => handleApply(req)} disabled={applyingId === req.id} style={applyButton}>
+                {applyingId === req.id ? "準備中..." : "💬 応募する・コンタクトを取る"}
+              </button>
+            )}
           </div>
         </div>
       ))}

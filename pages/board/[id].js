@@ -8,7 +8,6 @@ const CATEGORIES = [
   { value: "lost", label: "🔍 猫探し" },
   { value: "sighting", label: "👀 目撃情報" },
   { value: "rescue", label: "🏠 保護情報" },
-  { value: "volunteer", label: "🙋 ボランティア" },
   { value: "tnr", label: "✂️ TNR" },
   { value: "general", label: "💬 一般" },
 ]
@@ -128,11 +127,7 @@ export default function BoardDetail() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
         {post.created_by && user?.id !== post.created_by ? (
           <button onClick={handleContact} disabled={contacting} style={contactBtn}>
-            {contacting
-              ? "準備中..."
-              : post.category === "volunteer"
-                ? "🙋 応募する・コンタクトを取る"
-                : "💬 投稿者にコンタクトを取る"}
+            {contacting ? "準備中..." : "💬 投稿者にコンタクトを取る"}
           </button>
         ) : <span />}
         <button onClick={handleReport} style={smallReportBtn}>🚩 通報</button>

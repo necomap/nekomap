@@ -8,7 +8,6 @@ const CATEGORIES = [
   { value: "lost", label: "🔍 猫探し" },
   { value: "sighting", label: "👀 目撃情報" },
   { value: "rescue", label: "🏠 保護情報" },
-  { value: "volunteer", label: "🙋 ボランティア" },
   { value: "tnr", label: "✂️ TNR" },
   { value: "general", label: "💬 一般" },
 ]
@@ -107,6 +106,14 @@ export default function Board() {
           </button>
         ))}
       </div>
+
+      <p style={{ fontSize: 12, color: "#bbb", marginBottom: 16, textAlign: "right" }}>
+        🙋 ボランティア募集の投稿・閲覧は
+        <span onClick={() => router.push("/volunteer")} style={{ color: "#e07a5f", cursor: "pointer", textDecoration: "underline" }}>
+          専用ページ
+        </span>
+        からどうぞ
+      </p>
 
       {filtered.length === 0 && (
         <p style={{ color: "#999", textAlign: "center" }}>投稿がありません</p>
