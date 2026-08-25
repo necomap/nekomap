@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import BulkRegister from "../../components/BulkRegister"
 
 const TABS = [
   { key: "posts", label: "掲示板" },
@@ -118,7 +119,6 @@ export default function Admin() {
 
       {tab === "bulk" && <BulkRegister />}
       {tab !== "bulk" && data.map((item) => (
-      {data.map((item) => (
         <div key={item.id} style={cardStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div style={{ flex: 1, marginRight: 12 }}>
