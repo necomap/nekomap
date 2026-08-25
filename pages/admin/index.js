@@ -19,6 +19,8 @@ export default function Admin() {
   const [data, setData] = useState([])
   const [tab, setTab] = useState("posts")
   const [loading, setLoading] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     async function checkAdmin() {
@@ -27,11 +29,18 @@ export default function Admin() {
       const { data: profile } = await supabase
         .from("users").select("role").eq("id", userData.user.id).single()
       if (profile?.role !== "admin") { router.push("/"); return }
+      // 管理者であることが確認できてから初めてデータ取得・画面表示を許可する
+      setIsAdmin(true)
+      setAuthChecked(true)
     }
     checkAdmin()
   }, [])
 
-  useEffect(() => { loadData() }, [tab])
+  // 管理者確認が取れるまではデータ取得自体を行わない
+  useEffect(() => {
+    if (!isAdmin) return
+    loadData()
+  }, [tab, isAdmin])
 
   async function loadData() {
     setLoading(true)
@@ -96,6 +105,14 @@ export default function Admin() {
       role: type === "admin" ? "admin" : "user",
     }).eq("id", id)
     loadData()
+  }
+
+  if (!authChecked) {
+    return (
+      <div style={{ maxWidth: 800, margin: "100px auto", padding: 24, textAlign: "center", color: "#9e7b6e" }}>
+        確認中...
+      </div>
+    )
   }
 
   return (
