@@ -117,27 +117,44 @@ function MapLayers() {
     }
 
     // トイレ・ハウス・フードピン（緑系）
-    async function loadCatSpots() {
-      const { data } = await supabase.from("cat_spots").select("*")
-      if (!data) return
-      const icons = {
-        toilet: { emoji: "🚽", color: "#27ae60" },
-        house: { emoji: "🏠", color: "#2ecc71" },
-        food: { emoji: "🍚", color: "#f39c12" },
-      }
-      data.forEach((s) => {
-        if (!s.lat || !s.lng) return
-        const { emoji, color } = icons[s.type] || { emoji: "📍", color: "#27ae60" }
-        const icon = createIcon(emoji, color)(L)
-        L.marker([s.lat, s.lng], { icon })
-          .bindPopup(`
-            <b>${emoji} ${s.type}</b><br/>
-            ${s.description || ""}
-            ${s.verified ? "<br/>✅ 確認済み" : ""}
-          `)
-          .addTo(map)
-      })
-    }
+async function loadCatSpots() {
+  const { data: userData } = await supabase.auth.getUser()
+  let userType = "general"
+  if (userData.user) {
+    const { data: profile } = await supabase
+      .from("users").select("role, account_type")
+      .eq("id", userData.user.id).single()
+    userType = profile?.role === "admin" ? "admin" :
+               profile?.account_type === "organization" ? "organization" :
+               profile?.account_type === "activist" ? "activist" : "general"
+  }
+
+  // 一般ユーザーにはフード場所を非表示
+  const { data } = await supabase.from("cat_spots").select("*")
+  if (!data) return
+
+  const icons = {
+    toilet: { emoji: "🚽", color: "#27ae60" },
+    house: { emoji: "🏠", color: "#2ecc71" },
+    food: { emoji: "🍚", color: "#f39c12" },
+  }
+
+  data.forEach((s) => {
+    if (!s.lat || !s.lng) return
+    // フード場所は活動者・団体・管理者のみ表示
+    if (s.type === "food" && userType === "general") return
+
+    const { emoji, color } = icons[s.type] || { emoji: "📍", color: "#27ae60" }
+    const icon = createIcon(emoji, color)(L)
+    L.marker([s.lat, s.lng], { icon })
+      .bindPopup(`
+        <b>${emoji} ${s.type}</b><br/>
+        ${s.description || ""}
+        ${s.verified ? "<br/>✅ 確認済み" : ""}
+      `)
+      .addTo(map)
+  })
+}
 
     // ナワバリ表示
     async function loadTerritories() {

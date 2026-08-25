@@ -10,6 +10,7 @@ const TABS = [
   { key: "contacts", label: "お問い合わせ" },
   { key: "users", label: "ユーザー" },
   { key: "blacklist", label: "BAN一覧" },
+  { key: "bulk", label: "一括登録" },  // 追加
 ]
 
 export default function Admin() {
@@ -115,6 +116,8 @@ export default function Admin() {
 
       {loading && <p style={{ textAlign: "center", color: "#999" }}>読み込み中...</p>}
 
+      {tab === "bulk" && <BulkRegister />}
+      {tab !== "bulk" && data.map((item) => (
       {data.map((item) => (
         <div key={item.id} style={cardStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
