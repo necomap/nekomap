@@ -264,6 +264,24 @@ async function loadCatSpots() {
   return null
 }
 
+function LocateUser() {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        map.setView([pos.coords.latitude, pos.coords.longitude], 14)
+      },
+      () => {
+        // 位置情報が使えない・拒否された場合は初期表示（東京中心）のまま
+      }
+    )
+  }, [map])
+
+  return null
+}
+
 export default function MapView() {
   return (
     <MapContainer
@@ -273,6 +291,7 @@ export default function MapView() {
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <MapLayers />
+      <LocateUser />
     </MapContainer>
   )
 }
