@@ -12,6 +12,7 @@ export default function CatList() {
       const { data, error } = await supabase
         .from("cats")
         .select("*")
+        .or("memorial.is.null,memorial.eq.false")
         .order("created_at", { ascending: false })
       if (error) console.log("エラー:", error.message)
       setCats(data || [])
@@ -44,6 +45,10 @@ export default function CatList() {
       {filtered.length === 0 && (
         <p style={{ color: "#999", textAlign: "center" }}>まだ登録された猫がいません</p>
       )}
+
+      <div style={{ textAlign: "center", marginBottom: 20 }}>
+        <a href="/memorial" style={memorialLinkStyle}>🕊️ 訃報ページを見る</a>
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         {filtered.map((cat) => (
@@ -95,4 +100,7 @@ const buttonStyle = {
 const cardStyle = {
   border: "1px solid #f2c4a0", borderRadius: 14, padding: 12,
   cursor: "pointer", background: "white",
+}
+const memorialLinkStyle = {
+  fontSize: 13, color: "#9e7b6e", textDecoration: "none",
 }

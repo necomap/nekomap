@@ -14,6 +14,8 @@ export default function CatDetail() {
   const [tnrSchedules, setTnrSchedules] = useState([])
   const [territory, setTerritory] = useState(null)
   const [user, setUser] = useState(null)
+  const [profile, setProfile] = useState(null)
+  const [pendingReports, setPendingReports] = useState([])
   const [showHealthForm, setShowHealthForm] = useState(false)
   const [healthType, setHealthType] = useState("ワクチン")
   const [healthDate, setHealthDate] = useState("")
@@ -25,6 +27,18 @@ export default function CatDetail() {
     async function loadAll() {
       const { data: userData } = await supabase.auth.getUser()
       setUser(userData.user)
+
+      if (userData.user) {
+        const { data: profileData } = await supabase
+          .from("users").select("role").eq("id", userData.user.id).single()
+        setProfile(profileData)
+
+        const { data: reportsData } = await supabase
+          .from("reports").select("*")
+          .eq("target_table", "cats").eq("target_id", id)
+          .order("created_at", { ascending: false })
+        setPendingReports(reportsData || [])
+      }
 
       const { data: catData, error: catError } = await supabase
         .from("cats").select("*").eq("id", id).single()
@@ -69,6 +83,28 @@ export default function CatDetail() {
     setHealthRecords(data || [])
   }
 
+  async function markMemorial() {
+    if (!confirm(`${cat.name}を訃報として記録しますか？`)) return
+    const note = prompt("お別れの言葉やエピソードがあれば入力してください（任意）") || null
+    const date = prompt("旅立った日（例: 2026-08-01）。わからなければ空欄でOK") || null
+    const { error } = await supabase.from("cats").update({
+      memorial: true, memorial_note: note, memorial_date: date,
+    }).eq("id", id)
+    if (error) { alert("記録に失敗しました: " + error.message); return }
+    setCat({ ...cat, memorial: true, memorial_note: note, memorial_date: date })
+  }
+
+  async function reportDeath() {
+    if (!user) { router.push("/login"); return }
+    const reason = prompt("状況を教えてください（例：〇月〇日から姿が見えない、亡くなっているのを見つけた、など）")
+    if (!reason) return
+    const { error } = await supabase.from("reports").insert({
+      target_id: id, target_table: "cats", reason, created_by: user.id,
+    })
+    if (error) { alert("送信に失敗しました: " + error.message); return }
+    alert("登録者に伝わるよう報告しました。ご協力ありがとうございます。")
+  }
+
   async function addTnr() {
     const date = prompt("捕獲予定日を入力してください（例：2026-04-20）")
     if (!date) return
@@ -97,6 +133,8 @@ export default function CatDetail() {
     </div>
   )
 
+  const isOwnerOrAdmin = !!user && (user.id === cat.created_by || profile?.role === "admin")
+
   return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
       <button onClick={() => router.back()} style={backBtn}>← 戻る</button>
@@ -115,6 +153,44 @@ export default function CatDetail() {
           <button onClick={() => router.push(`/cats/${id}/edit`)} style={editBtn}>編集</button>
         )}
       </div>
+
+      {cat.memorial && (
+        <div style={memorialBanner}>
+          <p style={{ margin: 0, fontWeight: 600, fontSize: 15 }}>
+            🕊️ {cat.name}は虹の橋を渡りました
+          </p>
+          {cat.memorial_date && (
+            <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9e7b6e" }}>{cat.memorial_date}</p>
+          )}
+          {cat.memorial_note && (
+            <p style={{ margin: "8px 0 0", fontSize: 14, color: "#3d3230", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+              {cat.memorial_note}
+            </p>
+          )}
+        </div>
+      )}
+
+      {!cat.memorial && isOwnerOrAdmin && pendingReports.length > 0 && (
+        <div style={reportBanner}>
+          <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 13, color: "#e65100" }}>
+            ⚠️ {pendingReports.length}件の訃報に関する報告があります
+          </p>
+          {pendingReports.map((r) => (
+            <p key={r.id} style={{ margin: "2px 0", fontSize: 12, color: "#666" }}>・{r.reason}</p>
+          ))}
+        </div>
+      )}
+
+      {!cat.memorial && isOwnerOrAdmin && (
+        <button onClick={markMemorial} style={{ ...actionBtn, background: "#6b7280", marginBottom: 16 }}>
+          🕊️ 訃報として記録する
+        </button>
+      )}
+      {!cat.memorial && user && !isOwnerOrAdmin && (
+        <button onClick={reportDeath} style={{ ...actionBtn, background: "#f0e6e0", color: "#e07a5f", marginBottom: 16 }}>
+          訃報の可能性を報告する
+        </button>
+      )}
 
       <div style={cardStyle}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -235,4 +311,12 @@ const inputStyle = {
   display: "block", width: "100%", padding: "8px 12px",
   marginBottom: 8, border: "1px solid #f2c4a0", borderRadius: 10,
   fontSize: 15, boxSizing: "border-box", fontFamily: "inherit",
+}
+const memorialBanner = {
+  padding: 16, marginBottom: 16, borderRadius: 14,
+  background: "#f5f5f5", border: "1px solid #e0e0e0",
+}
+const reportBanner = {
+  padding: 12, marginBottom: 12, borderRadius: 12,
+  background: "#fff3e0", border: "1px solid #ffcc80",
 }

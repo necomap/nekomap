@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Settings } from "lucide-react"
+import { Settings, Trophy } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
+import { POINTS, getBadge } from "../../lib/badges"
 
 export default function EditProfile() {
   const router = useRouter()
@@ -14,6 +15,7 @@ export default function EditProfile() {
   })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
+  const [myScore, setMyScore] = useState(0)
 
   useEffect(() => {
     async function loadProfile() {
@@ -25,9 +27,27 @@ export default function EditProfile() {
         .eq("id", userData.user.id)
         .single()
       if (data) setProfile(data)
+      loadMyScore(userData.user.id)
     }
     loadProfile()
   }, [])
+
+  async function loadMyScore(uid) {
+    const [{ data: sightings }, { data: posts }, { data: resolved }, { data: applications }] = await Promise.all([
+      supabase.from("sightings").select("id").eq("created_by", uid),
+      supabase.from("posts").select("category").eq("created_by", uid),
+      supabase.from("trouble_reports").select("id").eq("volunteer_id", uid).eq("status", "解決"),
+      supabase.from("volunteer_applications").select("id").eq("applicant", uid),
+    ])
+    const rescueCount = posts?.filter((p) => p.category === "rescue").length || 0
+    const score =
+      (sightings?.length || 0) * POINTS.sighting +
+      (posts?.length || 0) * POINTS.post +
+      rescueCount * POINTS.rescue +
+      (resolved?.length || 0) * POINTS.resolved +
+      (applications?.length || 0) * POINTS.volunteerApp
+    setMyScore(score)
+  }
 
   async function handleSave() {
     setLoading(true)
@@ -56,6 +76,20 @@ export default function EditProfile() {
   return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
       <PageTitle icon={<Settings size={20} color="#e07a5f" />} title="プロフィール編集" />
+
+      <div style={badgeCardStyle}>
+        <span style={{ fontSize: 32 }}>{getBadge(myScore).emoji}</span>
+        <div style={{ flex: 1 }}>
+          <p style={{ margin: 0, fontWeight: 600, fontSize: 15, color: "#3d3230" }}>
+            {getBadge(myScore).label}
+          </p>
+          <p style={{ margin: 0, fontSize: 12, color: "#9e7b6e" }}>貢献度スコア {myScore}pt</p>
+        </div>
+        <button onClick={() => router.push("/ranking")} style={rankingLinkBtn}>
+          <Trophy size={14} style={{ marginRight: 4 }} />
+          ランキング
+        </button>
+      </div>
 
       <p style={{ fontSize: 13, color: "#9e7b6e", marginBottom: 16 }}>
         ※ 公開される情報：団体名・ホームページ・担当地域・寄付情報のみです。
@@ -130,4 +164,15 @@ const buttonStyle = {
   display: "block", width: "100%", padding: "12px",
   background: "#e07a5f", color: "white", border: "none",
   borderRadius: 12, fontSize: 16, cursor: "pointer", fontFamily: "inherit",
+}
+const badgeCardStyle = {
+  display: "flex", alignItems: "center", gap: 12,
+  padding: "14px 16px", marginBottom: 20,
+  background: "#fff9f5", border: "1px solid #f2c4a0", borderRadius: 14,
+}
+const rankingLinkBtn = {
+  display: "flex", alignItems: "center", padding: "6px 12px",
+  background: "#f0e6e0", color: "#e07a5f", border: "none",
+  borderRadius: 20, fontSize: 12, cursor: "pointer", fontFamily: "inherit",
+  whiteSpace: "nowrap",
 }

@@ -104,6 +104,9 @@ export default function Navbar() {
             <button onClick={() => go("/tnr")} style={menuBtn}>
               <Scissors size={16} /> TNRカレンダー
             </button>
+            <button onClick={() => go("/memorial")} style={menuBtn}>
+              🕊️ 訃報
+            </button>
 
             <p style={menuSection}>コミュニティ</p>
             <button onClick={() => go("/board")} style={menuBtn}>
