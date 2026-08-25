@@ -113,7 +113,11 @@ export default function Board() {
       )}
 
       {filtered.map((post) => (
-        <div key={post.id} style={cardStyle}>
+        <div
+          key={post.id}
+          onClick={() => router.push(`/board/${post.id}`)}
+          style={{ ...cardStyle, cursor: "pointer" }}
+        >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
             <h3 style={{ margin: 0, fontSize: 16 }}>{post.title}</h3>
             <span style={{
@@ -150,7 +154,7 @@ export default function Board() {
               </span>
             </div>
             <button
-              onClick={() => handleReport(post.id)}
+              onClick={(e) => { e.stopPropagation(); handleReport(post.id) }}
               style={{
                 padding: "4px 10px", background: "none",
                 border: "1px solid #eee", borderRadius: 20,

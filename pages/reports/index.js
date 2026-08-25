@@ -144,10 +144,21 @@ export default function Reports() {
             </div>
           )}
 
-          <p style={{ margin: "0 0 12px", fontSize: 12, color: "#bbb" }}>
+          <p style={{ margin: "0 0 8px", fontSize: 12, color: "#bbb" }}>
             {new Date(report.created_at).toLocaleDateString("ja-JP")}
             {report.address && ` ・ ${report.address}`}
           </p>
+
+          {report.lat && report.lng && (
+            <a
+              href={`https://www.google.com/maps?q=${report.lat},${report.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={mapLinkStyle}
+            >
+              📍 地図で場所を確認する
+            </a>
+          )}
 
           {user && report.status === "未対応" && (
             <button onClick={() => handleVolunteer(report)} style={volunteerBtn}>
@@ -209,4 +220,8 @@ const volunteerBtn = {
   display: "block", width: "100%", padding: "10px",
   background: "#1565c0", color: "white", border: "none",
   borderRadius: 10, fontSize: 14, cursor: "pointer", fontFamily: "inherit",
+}
+const mapLinkStyle = {
+  display: "inline-block", marginBottom: 12, fontSize: 13,
+  color: "#1565c0", textDecoration: "none",
 }
