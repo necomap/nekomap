@@ -3,7 +3,7 @@ import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { Users } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
-import { geocodeAddress } from "../../lib/geocode"
+import { searchAddressCandidates } from "../../lib/geocode"
 import "leaflet/dist/leaflet.css"
 
 export default function NewVolunteer() {
@@ -18,6 +18,8 @@ export default function NewVolunteer() {
   const [error, setError] = useState("")
   const [geocoding, setGeocoding] = useState(false)
   const [geocodeError, setGeocodeError] = useState("")
+  const [candidates, setCandidates] = useState([])
+  const [selectedPlace, setSelectedPlace] = useState("")
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markerRef = useRef(null)
@@ -70,21 +72,29 @@ export default function NewVolunteer() {
     if (!location.trim()) return
     setGeocoding(true)
     setGeocodeError("")
+    setCandidates([])
+    setSelectedPlace("")
     try {
-      const result = await geocodeAddress(location)
-      if (!result) { setGeocodeError("見つかりませんでした。表記を変えてお試しください"); return }
-      setLat(result.lat)
-      setLng(result.lng)
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.setView([result.lat, result.lng], 16)
-        const L = require("leaflet")
-        if (markerRef.current) markerRef.current.remove()
-        markerRef.current = L.marker([result.lat, result.lng]).addTo(mapInstanceRef.current)
-      }
+      const results = await searchAddressCandidates(location)
+      if (!results.length) { setGeocodeError("見つかりませんでした。表記を変えてお試しください"); return }
+      setCandidates(results)
     } catch (e) {
       setGeocodeError("検索に失敗しました: " + e.message)
     } finally {
       setGeocoding(false)
+    }
+  }
+
+  function selectCandidate(place) {
+    setLat(place.lat)
+    setLng(place.lng)
+    setSelectedPlace(place.displayName)
+    setCandidates([])
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView([place.lat, place.lng], 16)
+      const L = require("leaflet")
+      if (markerRef.current) markerRef.current.remove()
+      markerRef.current = L.marker([place.lat, place.lng]).addTo(mapInstanceRef.current)
     }
   }
 
@@ -125,8 +135,27 @@ export default function NewVolunteer() {
         </button>
       </div>
       {geocodeError && <p style={{ color: "red", fontSize: 12, marginBottom: 8 }}>{geocodeError}</p>}
+
+      {candidates.length > 0 && (
+        <div style={candidateListStyle}>
+          {candidates.map((c, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => selectCandidate(c)}
+              style={{ ...candidateItemStyle, borderBottom: i < candidates.length - 1 ? "1px solid #f9ede6" : "none" }}
+            >
+              📍 {c.displayName}
+            </button>
+          ))}
+        </div>
+      )}
+      {selectedPlace && (
+        <p style={{ fontSize: 12, color: "#43a047", marginBottom: 8 }}>✅ {selectedPlace}</p>
+      )}
+
       <p style={{ fontSize: 11, color: "#bbb", marginBottom: 12 }}>
-        場所を入力して「🔍 地図に反映」を押すと、下の地図がその場所に移動します
+        場所を入力して「🔍 地図に反映」を押すと候補が出るので、選ぶと下の地図が移動します
       </p>
 
       <input
@@ -174,4 +203,13 @@ const searchBtnStyle = {
   padding: "0 16px", background: "#f0e6e0", color: "#e07a5f",
   border: "none", borderRadius: 12, fontSize: 14, cursor: "pointer",
   fontFamily: "inherit", whiteSpace: "nowrap",
+}
+const candidateListStyle = {
+  marginBottom: 8, border: "1px solid #f2c4a0", borderRadius: 12,
+  overflow: "hidden", background: "white",
+}
+const candidateItemStyle = {
+  display: "block", width: "100%", textAlign: "left", padding: "10px 12px",
+  border: "none", background: "white", cursor: "pointer",
+  fontFamily: "inherit", fontSize: 13, color: "#3d3230",
 }

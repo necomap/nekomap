@@ -4,7 +4,7 @@ import { useRouter } from "next/router"
 import { checkPostLimit } from "../../lib/checkPostLimit"
 import { AlertTriangle } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
-import { geocodeAddress } from "../../lib/geocode"
+import { searchAddressCandidates } from "../../lib/geocode"
 import "leaflet/dist/leaflet.css"
 
 const TYPES = [
@@ -27,6 +27,8 @@ export default function NewReport() {
   const [error, setError] = useState("")
   const [geocoding, setGeocoding] = useState(false)
   const [geocodeError, setGeocodeError] = useState("")
+  const [candidates, setCandidates] = useState([])
+  const [selectedPlace, setSelectedPlace] = useState("")
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markerRef = useRef(null)
@@ -85,16 +87,24 @@ export default function NewReport() {
     if (!address.trim()) return
     setGeocoding(true)
     setGeocodeError("")
+    setCandidates([])
+    setSelectedPlace("")
     try {
-      const result = await geocodeAddress(address)
-      if (!result) { setGeocodeError("見つかりませんでした。表記を変えてお試しください"); return }
-      setLat(result.lat)
-      setLng(result.lng)
+      const results = await searchAddressCandidates(address)
+      if (!results.length) { setGeocodeError("見つかりませんでした。表記を変えてお試しください"); return }
+      setCandidates(results)
     } catch (e) {
       setGeocodeError("検索に失敗しました: " + e.message)
     } finally {
       setGeocoding(false)
     }
+  }
+
+  function selectCandidate(place) {
+    setLat(place.lat)
+    setLng(place.lng)
+    setSelectedPlace(place.displayName)
+    setCandidates([])
   }
 
   async function handleSubmit() {
@@ -170,7 +180,7 @@ export default function NewReport() {
             onClick={() => {
               // モードを切り替えたら、別モードで取得した古い座標を持ち越さないようにする
               if (mode !== locationMode) {
-                setLat(""); setLng(""); setGeocodeError("")
+                setLat(""); setLng(""); setGeocodeError(""); setCandidates([]); setSelectedPlace("")
                 if (mode === "gps" && navigator.geolocation) {
                   navigator.geolocation.getCurrentPosition((pos) => {
                     setLat(pos.coords.latitude)
@@ -221,7 +231,21 @@ export default function NewReport() {
             </button>
           </div>
           {geocodeError && <p style={{ color: "red", fontSize: 12, marginBottom: 8 }}>{geocodeError}</p>}
-          {lat && <p style={{ fontSize: 12, color: "#2e7d32", marginBottom: 12 }}>✅ 座標を取得しました</p>}
+          {candidates.length > 0 && (
+            <div style={candidateListStyle}>
+              {candidates.map((c, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => selectCandidate(c)}
+                  style={{ ...candidateItemStyle, borderBottom: i < candidates.length - 1 ? "1px solid #f9ede6" : "none" }}
+                >
+                  📍 {c.displayName}
+                </button>
+              ))}
+            </div>
+          )}
+          {selectedPlace && <p style={{ fontSize: 12, color: "#2e7d32", marginBottom: 12 }}>✅ {selectedPlace}</p>}
         </>
       )}
 
@@ -251,4 +275,13 @@ const searchBtnStyle = {
   padding: "0 16px", background: "#f0e6e0", color: "#e07a5f",
   border: "none", borderRadius: 12, fontSize: 14, cursor: "pointer",
   fontFamily: "inherit", whiteSpace: "nowrap",
+}
+const candidateListStyle = {
+  marginBottom: 8, border: "1px solid #f2c4a0", borderRadius: 12,
+  overflow: "hidden", background: "white",
+}
+const candidateItemStyle = {
+  display: "block", width: "100%", textAlign: "left", padding: "10px 12px",
+  border: "none", background: "white", cursor: "pointer",
+  fontFamily: "inherit", fontSize: 13, color: "#3d3230",
 }
