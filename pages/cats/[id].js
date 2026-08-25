@@ -21,6 +21,11 @@ export default function CatDetail() {
   const [healthDate, setHealthDate] = useState("")
   const [healthNote, setHealthNote] = useState("")
   const [loaded, setLoaded] = useState(false)
+  const [showMemorialForm, setShowMemorialForm] = useState(false)
+  const [memorialNote, setMemorialNote] = useState("")
+  const [memorialDate, setMemorialDate] = useState("")
+  const [showReportForm, setShowReportForm] = useState(false)
+  const [reportReason, setReportReason] = useState("")
 
   useEffect(() => {
     if (!id) return
@@ -83,25 +88,27 @@ export default function CatDetail() {
     setHealthRecords(data || [])
   }
 
-  async function markMemorial() {
-    if (!confirm(`${cat.name}を訃報として記録しますか？`)) return
-    const note = prompt("お別れの言葉やエピソードがあれば入力してください（任意）") || null
-    const date = prompt("旅立った日（例: 2026-08-01）。わからなければ空欄でOK") || null
+  async function submitMemorial() {
+    const note = memorialNote.trim() || null
+    const date = memorialDate || null
     const { error } = await supabase.from("cats").update({
       memorial: true, memorial_note: note, memorial_date: date,
     }).eq("id", id)
     if (error) { alert("記録に失敗しました: " + error.message); return }
     setCat({ ...cat, memorial: true, memorial_note: note, memorial_date: date })
+    setShowMemorialForm(false)
   }
 
-  async function reportDeath() {
+  async function submitReportDeath() {
     if (!user) { router.push("/login"); return }
-    const reason = prompt("状況を教えてください（例：〇月〇日から姿が見えない、亡くなっているのを見つけた、など）")
+    const reason = reportReason.trim()
     if (!reason) return
     const { error } = await supabase.from("reports").insert({
       target_id: id, target_table: "cats", reason, created_by: user.id,
     })
     if (error) { alert("送信に失敗しました: " + error.message); return }
+    setReportReason("")
+    setShowReportForm(false)
     alert("登録者に伝わるよう報告しました。ご協力ありがとうございます。")
   }
 
@@ -310,14 +317,77 @@ export default function CatDetail() {
       </div>
 
       {!cat.memorial && isOwnerOrAdmin && (
-        <button onClick={markMemorial} style={smallGhostBtn}>
-          🕊️ 訃報として記録する
-        </button>
+        <div style={{ marginTop: 32 }}>
+          <button onClick={() => setShowMemorialForm(!showMemorialForm)} style={smallGhostBtn}>
+            🕊️ 訃報として記録する
+          </button>
+
+          {showMemorialForm && (
+            <div style={{ ...cardStyle, marginTop: 12 }}>
+              <p style={{ margin: "0 0 10px", fontSize: 13, color: "#666", lineHeight: 1.6 }}>
+                {cat.name}を訃報として記録します。通常の一覧からは外れ、訃報ページに掲載されます。
+              </p>
+              <textarea
+                placeholder="お別れの言葉やエピソード（任意）"
+                value={memorialNote}
+                onChange={(e) => setMemorialNote(e.target.value)}
+                style={{ ...inputStyle, height: 80 }}
+              />
+              <label style={{ display: "block", marginBottom: 12 }}>
+                <span style={{ display: "block", marginBottom: 4, color: "#9e7b6e", fontSize: 13 }}>
+                  旅立った日（任意・わからなければ空欄でOK）
+                </span>
+                <input
+                  type="date"
+                  value={memorialDate}
+                  onChange={(e) => setMemorialDate(e.target.value)}
+                  style={{ ...inputStyle, marginBottom: 0 }}
+                />
+              </label>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={submitMemorial} style={{ ...actionBtn, marginBottom: 0, background: "#6b7280" }}>
+                  記録する
+                </button>
+                <button
+                  onClick={() => { setShowMemorialForm(false); setMemorialNote(""); setMemorialDate("") }}
+                  style={{ ...actionBtn, marginBottom: 0, background: "#f0e6e0", color: "#e07a5f" }}
+                >
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
+
       {!cat.memorial && user && !isOwnerOrAdmin && (
-        <button onClick={reportDeath} style={smallGhostBtn}>
-          訃報の可能性を報告する
-        </button>
+        <div style={{ marginTop: 32 }}>
+          <button onClick={() => setShowReportForm(!showReportForm)} style={smallGhostBtn}>
+            訃報の可能性を報告する
+          </button>
+
+          {showReportForm && (
+            <div style={{ ...cardStyle, marginTop: 12 }}>
+              <textarea
+                placeholder="状況を教えてください（例：〇月〇日から姿が見えない、亡くなっているのを見つけた、など）"
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                style={{ ...inputStyle, height: 80 }}
+              />
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={submitReportDeath} disabled={!reportReason.trim()} style={{ ...actionBtn, marginBottom: 0 }}>
+                  報告する
+                </button>
+                <button
+                  onClick={() => { setShowReportForm(false); setReportReason("") }}
+                  style={{ ...actionBtn, marginBottom: 0, background: "#f0e6e0", color: "#e07a5f" }}
+                >
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   )
