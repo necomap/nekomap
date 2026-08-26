@@ -93,6 +93,7 @@ export default function ChatRoom() {
       setPhoto(null)
     }
 
+    const sentText = text
     await supabase.from("chats").insert({
       room_id: room,
       sender: user?.id,
@@ -100,6 +101,25 @@ export default function ChatRoom() {
       photo: photoUrl,
     })
     setText("")
+
+    // 相手にプッシュ通知（未設定の場合はAPI側で静かにスキップされるので、
+    // 失敗してもチャット自体には影響させない）
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const accessToken = sessionData?.session?.access_token
+      if (accessToken) {
+        fetch("/api/push/send", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ roomId: room, preview: sentText || "📷 画像を送信しました" }),
+        }).catch(() => {})
+      }
+    } catch (e) {
+      // 通知送信の失敗はチャット機能に影響させない
+    }
   }
 
   if (!accessChecked) {

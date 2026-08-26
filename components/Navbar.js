@@ -5,13 +5,16 @@ import {
   Map, Cat, ClipboardList, AlertTriangle, Menu, X,
   LogIn, LogOut, Plus, MapPin, Scissors, Users,
   Heart, Shield, BookOpen, Mail, Trophy, Settings,
-  Home, MessageCircle
+  Home, MessageCircle, Bell, BellOff
 } from "lucide-react"
+import { isPushSupported, getPushSubscriptionStatus, subscribeToPush, unsubscribeFromPush } from "../lib/pushNotifications"
 
 export default function Navbar() {
   const router = useRouter()
   const [user, setUser] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [pushEnabled, setPushEnabled] = useState(false)
+  const [pushLoading, setPushLoading] = useState(false)
 
   useEffect(() => {
     async function getUser() {
@@ -24,6 +27,28 @@ export default function Navbar() {
     })
     return () => listener.subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    if (!user || !isPushSupported()) return
+    getPushSubscriptionStatus().then(setPushEnabled)
+  }, [user])
+
+  async function togglePush() {
+    if (!user) { router.push("/login"); return }
+    setPushLoading(true)
+    try {
+      if (pushEnabled) {
+        await unsubscribeFromPush()
+        setPushEnabled(false)
+      } else {
+        await subscribeToPush(user.id)
+        setPushEnabled(true)
+      }
+    } catch (e) {
+      alert(e.message)
+    }
+    setPushLoading(false)
+  }
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -52,6 +77,16 @@ export default function Navbar() {
           <button onClick={() => go("/reports")} style={navBtn} title="困りごと">
             <AlertTriangle size={18} />
           </button>
+          {user && isPushSupported() && (
+            <button
+              onClick={togglePush}
+              disabled={pushLoading}
+              style={navBtn}
+              title={pushEnabled ? "通知をオフにする" : "通知をオンにする（応募・コンタクトの返信をお知らせします）"}
+            >
+              {pushEnabled ? <Bell size={18} color="#e07a5f" /> : <BellOff size={18} />}
+            </button>
+          )}
           <button onClick={() => setMenuOpen(!menuOpen)} style={navBtn}>
             {menuOpen ? <X size={18} /> : <Menu size={18} />}
             <span style={{ fontSize: 12, marginLeft: 2 }}>メニュー</span>
