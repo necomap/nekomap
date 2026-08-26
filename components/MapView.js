@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, useMap } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import "leaflet-draw/dist/leaflet.draw.css"
 import { supabase } from "../lib/supabase"
+import { blurLocation } from "../lib/blurLocation"
 
 function createIcon(emoji, color) {
   return (L) => L.divIcon({
@@ -57,15 +58,19 @@ function MapLayers() {
 
       if (!data) return
       const icon = createIcon("🐱", "#e07a5f")(L)
+      // 管理者・団体アカウント以外には、実際の座標ではなくぼかした座標でピンを立てる
+      // （以前はこの注意書きだけ表示して、実際は正確な位置のままピンを立てていたため要修正）
+      const isPrivileged = userType === "admin" || userType === "organization"
       data.forEach((s) => {
         if (!s.lat || !s.lng) return
-        L.marker([s.lat, s.lng], { icon })
+        const pos = blurLocation(s.lat, s.lng, userType)
+        L.marker([pos.lat, pos.lng], { icon })
           .bindPopup(`
             <b>🐱 ${s.cats?.name || "地域猫"}</b><br/>
             ${s.description || ""}<br/>
             ${s.photo ? `<img src="${s.photo}" style="width:100%;margin-top:8px;border-radius:4px"/>` : ""}
             ${s.cat_id ? `<br/><a href="/cats/${s.cat_id}" style="color:#e07a5f;font-size:13px">🐱 猫の詳細を見る →</a>` : ""}
-            ${userType === "general" ? "<br/><small style='color:#999'>※位置は約100mぼかしています</small>" : ""}
+            ${!isPrivileged ? "<br/><small style='color:#999'>※位置は約100mぼかしています</small>" : ""}
           `)
           .addTo(map)
       })
@@ -189,6 +194,10 @@ async function loadCatSpots() {
       drawnItems.addLayer(layer)
       const geojson = layer.toGeoJSON()
 
+      // created_byを保存しておかないと、後で「本人のみ編集・削除可」の
+      // 制限をかけたときに登録者自身も編集できなくなってしまうため必須
+      const { data: userData } = await supabase.auth.getUser()
+
       const { data: cats } = await supabase.from("cats").select("id, name")
 
       const catList = cats?.map((c) => c.name).join("、") || "なし"
@@ -220,6 +229,7 @@ async function loadCatSpots() {
               polygon: geojson,
               color: "#4a90e2",
               cat_id: null,
+              created_by: userData.user?.id,
             }).select().single()
 
             if (saved) {
@@ -238,6 +248,7 @@ async function loadCatSpots() {
         polygon: geojson,
         color: catId ? "#e07a5f" : "#4a90e2",
         cat_id: catId,
+        created_by: userData.user?.id,
       })
 
       if (!error) {

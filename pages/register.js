@@ -38,7 +38,9 @@ export default function Register() {
     setLoading(true)
     const { data, error } = await supabase.auth.signUp({
       email, password,
-      options: { emailRedirectTo: "https://neko-map-app.vercel.app/map" }
+      // 本番URLを直書きせず、実際にアクセスされているドメインを使う
+      // （プレビュー環境やドメイン変更時にもリンクが正しく機能する）
+      options: { emailRedirectTo: `${window.location.origin}/map` }
     })
 
     if (error) { setError(error.message); setLoading(false); return }

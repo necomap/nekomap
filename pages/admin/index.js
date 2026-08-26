@@ -304,6 +304,7 @@ export default function Admin() {
                       item.account_type === "activist" ? "🙋 活動者" :
                       item.role === "admin" ? "⚙️ 管理者" : "👤 一般"
                     }
+                    {item.organization && ` ・ 所属: ${item.organization}`}
                   </p>
                 </>
               )}

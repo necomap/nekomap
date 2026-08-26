@@ -28,7 +28,7 @@ export default function BoardDetail() {
 
       const { data, error } = await supabase
         .from("posts")
-        .select("*, users(nickname, avatar)")
+        .select("*, users(nickname, avatar, organization)")
         .eq("id", id)
         .single()
       if (error) console.log("投稿取得エラー:", error.message)
@@ -110,7 +110,12 @@ export default function BoardDetail() {
             ? <img src={post.users.avatar} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             : "🐱"}
         </div>
-        <span style={{ fontSize: 13, color: "#9e7b6e" }}>{post.users?.nickname || "匿名"}</span>
+        <span style={{ fontSize: 13, color: "#9e7b6e" }}>
+          {post.users?.nickname || "匿名"}
+          {post.users?.organization && (
+            <span style={{ color: "#4a90e2" }}> ・ 🏢{post.users.organization}</span>
+          )}
+        </span>
         <span style={{ fontSize: 12, color: "#bbb" }}>
           {new Date(post.created_at).toLocaleDateString("ja-JP")}
         </span>

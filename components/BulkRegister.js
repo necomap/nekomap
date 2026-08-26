@@ -22,49 +22,49 @@ export default function BulkRegister() {
     setError("")
     setMessage("")
 
-    const { data, error: signUpError } = await supabase.auth.admin
-      ? await fetch("https://amzfsmdezceuauskkghd.supabase.co/auth/v1/admin/users", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            email,
-            password,
-            email_confirm: true,
-          }),
-        }).then(r => r.json())
-      : { error: "admin not available" }
+    // 代行登録はブラウザ側でsignUpせず、サーバー側API（サービスロールキー使用）
+    // に処理を任せる。ブラウザ側でsignUpすると、管理者自身が使っている
+    // Supabaseクライアントのセッションが新規ユーザーのものに置き換わってしまい、
+    // 管理者が意図せずログアウトされてしまうため。
+    const { data: sessionData } = await supabase.auth.getSession()
+    const accessToken = sessionData?.session?.access_token
 
-    // 通常のsignUpを使用
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email, password,
-    })
-
-    if (authError) {
-      setError("登録エラー: " + authError.message)
+    if (!accessToken) {
+      setError("ログイン状態を確認できませんでした。再度ログインしてください")
       setLoading(false)
       return
     }
 
-    await supabase.from("users").insert({
-      id: authData.user.id,
-      email, nickname, name,
-      organization: organization || null,
-      website: website || null,
-      account_type: accountType,
-      role: "user",
-    })
+    try {
+      const res = await fetch("/api/admin/bulk-register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          email, password, nickname, name,
+          organization, website, accountType,
+        }),
+      })
+      const result = await res.json()
 
-    setMessage(`✅ ${nickname}（${email}）を登録しました！`)
-    setNickname("")
-    setName("")
-    setEmail("")
-    setPassword("")
-    setOrganization("")
-    setWebsite("")
+      if (!res.ok) {
+        setError(result.error || "登録に失敗しました")
+        setLoading(false)
+        return
+      }
+
+      setMessage(`✅ ${nickname}（${email}）を登録しました！`)
+      setNickname("")
+      setName("")
+      setEmail("")
+      setPassword("")
+      setOrganization("")
+      setWebsite("")
+    } catch (e) {
+      setError("通信エラーが発生しました: " + e.message)
+    }
     setLoading(false)
   }
 

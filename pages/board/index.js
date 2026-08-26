@@ -31,7 +31,7 @@ export default function Board() {
   async function loadPosts() {
     let query = supabase
       .from("posts")
-      .select("*, users(nickname, avatar)")
+      .select("*, users(nickname, avatar, organization)")
       .eq("hidden", false)
       .order("created_at", { ascending: false })
 
@@ -155,6 +155,9 @@ export default function Board() {
               </div>
               <span style={{ fontSize: 12, color: "#9e7b6e" }}>
                 {post.users?.nickname || "匿名"}
+                {post.users?.organization && (
+                  <span style={{ color: "#4a90e2" }}> ・ 🏢{post.users.organization}</span>
+                )}
               </span>
               <span style={{ fontSize: 12, color: "#bbb" }}>
                 {new Date(post.created_at).toLocaleDateString("ja-JP")}

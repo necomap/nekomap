@@ -39,7 +39,7 @@ export default function ChatRoom() {
 
       const otherId = roomData.user_a === user.id ? roomData.user_b : roomData.user_a
       const { data: otherProfile } = await supabase
-        .from("users").select("nickname, avatar").eq("id", otherId).single()
+        .from("users").select("nickname, avatar, organization").eq("id", otherId).single()
       setOtherUser(otherProfile)
       setAccessChecked(true)
     }
@@ -134,9 +134,14 @@ export default function ChatRoom() {
         >
           ←
         </button>
-        <h2 style={{ margin: 0, fontSize: 18, color: "#3d3230" }}>
-          💬 {otherUser?.nickname || "チャット"}
-        </h2>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 18, color: "#3d3230" }}>
+            💬 {otherUser?.nickname || "チャット"}
+          </h2>
+          {otherUser?.organization && (
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#4a90e2" }}>🏢 {otherUser.organization}</p>
+          )}
+        </div>
       </div>
 
       <div style={{ flex: 1, overflowY: "auto", padding: 16, background: "#fff9f5" }}>

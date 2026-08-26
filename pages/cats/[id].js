@@ -35,7 +35,7 @@ export default function CatDetail() {
 
       if (userData.user) {
         const { data: profileData } = await supabase
-          .from("users").select("role").eq("id", userData.user.id).single()
+          .from("users").select("role, account_type").eq("id", userData.user.id).single()
         setProfile(profileData)
 
         const { data: reportsData } = await supabase
@@ -174,6 +174,8 @@ export default function CatDetail() {
   )
 
   const isOwnerOrAdmin = !!user && (user.id === cat.created_by || profile?.role === "admin")
+  // 目撃地点マップの位置ぼかし判定に使う（管理者・団体以外はぼかす）
+  const mapUserType = profile?.role === "admin" ? "admin" : profile?.account_type || "general"
 
   return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
@@ -257,7 +259,7 @@ export default function CatDetail() {
                 </div>
                 {t.organization && <p style={{ margin: "4px 0 0", fontSize: 12, color: "#4a90e2" }}>{t.organization}</p>}
               </div>
-              {user && (
+              {user && (user.id === t.created_by || profile?.role === "admin") && (
                 <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                   <button onClick={() => editTnr(t)} style={smallBtn}>編集</button>
                   <button onClick={() => deleteTnr(t)} style={{ ...smallBtn, color: "#e05252", borderColor: "#f5c2c2" }}>削除</button>
@@ -306,7 +308,10 @@ export default function CatDetail() {
           <p style={{ color: "#bbb", fontSize: 14 }}>目撃情報・ナワバリはありません</p>
         )}
         {loaded && (sightings.length > 0 || territory) && (
-          <CatMap sightings={sightings} territory={territory} />
+          <CatMap sightings={sightings} territory={territory} userType={mapUserType} />
+        )}
+        {!["admin", "organization"].includes(mapUserType) && sightings.some((s) => s.lat && s.lng) && (
+          <p style={{ fontSize: 11, color: "#999", margin: "4px 0 0" }}>※地図上の位置は約100mぼかしています</p>
         )}
         {sightings.map((s) => (
           <div key={s.id} style={{ ...tagStyle, marginBottom: 6 }}>

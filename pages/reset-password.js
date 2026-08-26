@@ -16,7 +16,8 @@ export default function ResetPassword() {
     if (!email) { setError("メールアドレスを入力してください"); return }
     setLoading(true)
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: "https://neko-map-app.vercel.app/reset-password?mode=update",
+      // 本番URLを直書きせず、実際にアクセスされているドメインを使う
+      redirectTo: `${window.location.origin}/reset-password?mode=update`,
     })
     if (error) {
       setError("送信に失敗しました: " + error.message)

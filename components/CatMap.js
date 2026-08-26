@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react"
 import "leaflet/dist/leaflet.css"
+import { blurLocation } from "../lib/blurLocation"
 
-export default function CatMap({ sightings, territory }) {
+export default function CatMap({ sightings, territory, userType = "general" }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
 
@@ -23,14 +24,16 @@ export default function CatMap({ sightings, territory }) {
 
     const bounds = []
 
+    // 管理者・団体アカウント以外には、正確な座標ではなくぼかした座標で表示する
     sightings?.forEach((s) => {
       if (!s.lat || !s.lng) return
-      const marker = L.circleMarker([s.lat, s.lng], {
+      const pos = blurLocation(s.lat, s.lng, userType)
+      const marker = L.circleMarker([pos.lat, pos.lng], {
         radius: 8, color: "#e07a5f", fillColor: "#e07a5f", fillOpacity: 0.7,
       })
       marker.bindPopup(`📍 ${new Date(s.created_at).toLocaleDateString("ja-JP")}<br/>${s.description || ""}`)
       marker.addTo(map)
-      bounds.push([s.lat, s.lng])
+      bounds.push([pos.lat, pos.lng])
     })
 
     if (territory) {
@@ -55,6 +58,7 @@ export default function CatMap({ sightings, territory }) {
       map.remove()
       mapInstanceRef.current = null
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

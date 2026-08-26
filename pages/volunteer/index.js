@@ -23,7 +23,7 @@ export default function Volunteer() {
   async function loadRequests() {
     const { data } = await supabase
       .from("volunteer_requests")
-      .select("*")
+      .select("*, users(nickname, organization)")
       .order("created_at", { ascending: false })
     setRequests(data || [])
   }
@@ -59,6 +59,14 @@ export default function Volunteer() {
       {requests.map((req) => (
         <div key={req.id} style={cardStyle}>
           <h3 style={{ margin: "0 0 8px" }}>{req.title}</h3>
+          {(req.users?.nickname || req.users?.organization) && (
+            <p style={{ margin: "0 0 8px", fontSize: 13, color: "#9e7b6e" }}>
+              🙋 {req.users?.nickname || "匿名"}
+              {req.users?.organization && (
+                <span style={{ color: "#4a90e2" }}> ・ 🏢{req.users.organization}</span>
+              )}
+            </p>
+          )}
           {req.location && (
             <p style={{ margin: "0 0 4px", fontSize: 14, color: "#666" }}>
               📍 {req.location}
