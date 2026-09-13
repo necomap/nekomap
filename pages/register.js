@@ -2,6 +2,7 @@ import { useState, useRef } from "react"
 import { supabase } from "../lib/supabase"
 import { useRouter } from "next/router"
 import { Eye, EyeOff } from "lucide-react"
+import { compressImage } from "../lib/compressImage"
 
 export default function Register() {
   const router = useRouter()
@@ -47,9 +48,10 @@ export default function Register() {
 
     let avatarUrl = null
     if (avatar) {
+      const compressedAvatar = await compressImage(avatar, { maxSize: 512 })
       const fileName = `avatars/${data.user.id}_${Date.now()}`
       const { error: uploadError } = await supabase.storage
-        .from("cat-photos").upload(fileName, avatar)
+        .from("cat-photos").upload(fileName, compressedAvatar)
       if (!uploadError) {
         const { data: urlData } = supabase.storage.from("cat-photos").getPublicUrl(fileName)
         avatarUrl = urlData.publicUrl

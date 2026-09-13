@@ -4,6 +4,7 @@ import { useRouter } from "next/router"
 import { Cat } from "lucide-react"
 import PageTitle from "../../../components/PageTitle"
 import { getImageEmbedding, embeddingToVectorLiteral } from "../../../lib/catFaceAI"
+import { compressImage } from "../../../lib/compressImage"
 
 export default function EditCat() {
   const router = useRouter()
@@ -65,10 +66,11 @@ export default function EditCat() {
     const update = { name, features, sex, neutered, notes }
 
     if (photo) {
-      const fileName = `${Date.now()}_${photo.name}`
+      const compressedPhoto = await compressImage(photo)
+      const fileName = `${Date.now()}_${compressedPhoto.name}`
       const { error: uploadError } = await supabase.storage
         .from("cat-photos")
-        .upload(fileName, photo)
+        .upload(fileName, compressedPhoto)
 
       if (uploadError) {
         setError("写真のアップロードに失敗しました")
@@ -82,7 +84,7 @@ export default function EditCat() {
       // 写真を差し替えた場合のみ、AIの特徴データも再計算する
       try {
         setAiStatus("analyzing")
-        const embedding = await getImageEmbedding(photo)
+        const embedding = await getImageEmbedding(compressedPhoto)
         update.face_embedding = embeddingToVectorLiteral(embedding)
         update.face_embedding_updated_at = new Date().toISOString()
         setAiStatus("done")

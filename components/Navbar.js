@@ -15,6 +15,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [pushEnabled, setPushEnabled] = useState(false)
   const [pushLoading, setPushLoading] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
     async function getUser() {
@@ -31,6 +32,26 @@ export default function Navbar() {
   useEffect(() => {
     if (!user || !isPushSupported()) return
     getPushSubscriptionStatus().then(setPushEnabled)
+  }, [user])
+
+  useEffect(() => {
+    if (!user) { setUnreadCount(0); return }
+    async function checkUnread() {
+      const { data: roomRows } = await supabase
+        .from("chat_rooms").select("*").or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
+      if (!roomRows || roomRows.length === 0) { setUnreadCount(0); return }
+      const flags = await Promise.all(roomRows.map(async (r) => {
+        const myLastRead = r.user_a === user.id ? r.last_read_at_a : r.last_read_at_b
+        const { data: lastMsgs } = await supabase
+          .from("chats").select("sender, created_at")
+          .eq("room_id", r.id).order("created_at", { ascending: false }).limit(1)
+        const lastMsg = lastMsgs?.[0]
+        if (!lastMsg || lastMsg.sender === user.id) return false
+        return !myLastRead || new Date(lastMsg.created_at) > new Date(myLastRead)
+      }))
+      setUnreadCount(flags.filter(Boolean).length)
+    }
+    checkUnread()
   }, [user])
 
   async function togglePush() {
@@ -77,6 +98,12 @@ export default function Navbar() {
           <button onClick={() => go("/reports")} style={navBtn} title="困りごと">
             <AlertTriangle size={18} />
           </button>
+          {user && (
+            <button onClick={() => go("/chat")} style={{ ...navBtn, position: "relative" }} title="メッセージ">
+              <MessageCircle size={18} />
+              {unreadCount > 0 && <span style={unreadDotStyle} />}
+            </button>
+          )}
           {user && isPushSupported() && (
             <button
               onClick={togglePush}
@@ -220,6 +247,11 @@ const logoutBtn = {
 }
 const overlay = {
   position: "fixed", inset: 0, zIndex: 998,
+}
+const unreadDotStyle = {
+  position: "absolute", top: 2, right: 4,
+  width: 8, height: 8, borderRadius: "50%",
+  background: "#e07a5f", border: "1px solid white",
 }
 const menuStyle = {
   position: "fixed", top: 56, right: 16, zIndex: 999,

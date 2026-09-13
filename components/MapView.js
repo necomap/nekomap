@@ -1,7 +1,9 @@
-import { useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 import { MapContainer, TileLayer, useMap } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import "leaflet-draw/dist/leaflet.draw.css"
+import "leaflet.markercluster/dist/MarkerCluster.css"
+import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import { supabase } from "../lib/supabase"
 import { blurLocation } from "../lib/blurLocation"
 
@@ -23,13 +25,23 @@ function createIcon(emoji, color) {
   })
 }
 
-function MapLayers() {
+// 地図上に表示するレイヤーの種類（クラスタリング・表示切替の単位）
+const LAYER_OPTIONS = [
+  { key: "sightings", label: "🐱 地域猫" },
+  { key: "stray", label: "🐈 野良猫" },
+  { key: "troubles", label: "⚠️ 困りごと" },
+  { key: "spots", label: "📍 スポット" },
+  { key: "territories", label: "🗺️ ナワバリ" },
+]
+
+function MapLayers({ visibility, layersRef }) {
   const map = useMap()
 
   useEffect(() => {
     if (!map) return
     const L = require("leaflet")
     require("leaflet-draw")
+    require("leaflet.markercluster")
 
     delete L.Icon.Default.prototype._getIconUrl
     L.Icon.Default.mergeOptions({
@@ -37,6 +49,17 @@ function MapLayers() {
       iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
       shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
     })
+
+    // 分類ごとにレイヤーを分けておく（クラスタリング＋表示/非表示切替のため）
+    const layers = {
+      sightings: L.markerClusterGroup(),
+      stray: L.markerClusterGroup(),
+      troubles: L.markerClusterGroup(),
+      spots: L.markerClusterGroup(),
+      territories: L.layerGroup(),
+    }
+    layersRef.current = layers
+    Object.values(layers).forEach((lg) => map.addLayer(lg))
 
     // 地域猫ピン（ぼかし処理付き）
     async function loadCatSightings() {
@@ -53,13 +76,10 @@ function MapLayers() {
         .from("sightings")
         .select("*, cats(name)")
 
-      console.log("sightingsデータ:", data)
-      console.log("エラー:", error)
-
+      if (error) { console.log("sightings取得エラー:", error.message); return }
       if (!data) return
       const icon = createIcon("🐱", "#e07a5f")(L)
       // 管理者・団体アカウント以外には、実際の座標ではなくぼかした座標でピンを立てる
-      // （以前はこの注意書きだけ表示して、実際は正確な位置のままピンを立てていたため要修正）
       const isPrivileged = userType === "admin" || userType === "organization"
       data.forEach((s) => {
         if (!s.lat || !s.lng) return
@@ -72,7 +92,7 @@ function MapLayers() {
             ${s.cat_id ? `<br/><a href="/cats/${s.cat_id}" style="color:#e07a5f;font-size:13px">🐱 猫の詳細を見る →</a>` : ""}
             ${!isPrivileged ? "<br/><small style='color:#999'>※位置は約100mぼかしています</small>" : ""}
           `)
-          .addTo(map)
+          .addTo(layers.sightings)
       })
     }
 
@@ -92,7 +112,7 @@ function MapLayers() {
             ${s.comment || ""}<br/>
             ${s.photo ? `<img src="${s.photo}" style="width:100%;margin-top:8px;border-radius:4px"/>` : ""}
           `)
-          .addTo(map)
+          .addTo(layers.stray)
       })
     }
 
@@ -117,49 +137,49 @@ function MapLayers() {
             <span style="color:${t.status === "対応済" ? "green" : "orange"}">${t.status}</span>
             ${t.action ? `<br/>対策: ${t.action}` : ""}
           `)
-          .addTo(map)
+          .addTo(layers.troubles)
       })
     }
 
     // トイレ・ハウス・フードピン（緑系）
-async function loadCatSpots() {
-  const { data: userData } = await supabase.auth.getUser()
-  let userType = "general"
-  if (userData.user) {
-    const { data: profile } = await supabase
-      .from("users").select("role, account_type")
-      .eq("id", userData.user.id).single()
-    userType = profile?.role === "admin" ? "admin" :
-               profile?.account_type === "organization" ? "organization" :
-               profile?.account_type === "activist" ? "activist" : "general"
-  }
+    async function loadCatSpots() {
+      // 一般ユーザーにはフード場所を非表示（サーバー側のRLSでも同様に制限済み。
+      // ここはあくまで表示側の二重の配慮）
+      const { data: userData } = await supabase.auth.getUser()
+      let userType = "general"
+      if (userData.user) {
+        const { data: profile } = await supabase
+          .from("users").select("role, account_type")
+          .eq("id", userData.user.id).single()
+        userType = profile?.role === "admin" ? "admin" :
+                   profile?.account_type === "organization" ? "organization" :
+                   profile?.account_type === "activist" ? "activist" : "general"
+      }
 
-  // 一般ユーザーにはフード場所を非表示
-  const { data } = await supabase.from("cat_spots").select("*")
-  if (!data) return
+      const { data } = await supabase.from("cat_spots").select("*")
+      if (!data) return
 
-  const icons = {
-    toilet: { emoji: "🚽", color: "#27ae60" },
-    house: { emoji: "🏠", color: "#2ecc71" },
-    food: { emoji: "🍚", color: "#f39c12" },
-  }
+      const icons = {
+        toilet: { emoji: "🚽", color: "#27ae60" },
+        house: { emoji: "🏠", color: "#2ecc71" },
+        food: { emoji: "🍚", color: "#f39c12" },
+      }
 
-  data.forEach((s) => {
-    if (!s.lat || !s.lng) return
-    // フード場所は活動者・団体・管理者のみ表示
-    if (s.type === "food" && userType === "general") return
+      data.forEach((s) => {
+        if (!s.lat || !s.lng) return
+        if (s.type === "food" && userType === "general") return
 
-    const { emoji, color } = icons[s.type] || { emoji: "📍", color: "#27ae60" }
-    const icon = createIcon(emoji, color)(L)
-    L.marker([s.lat, s.lng], { icon })
-      .bindPopup(`
-        <b>${emoji} ${s.type}</b><br/>
-        ${s.description || ""}
-        ${s.verified ? "<br/>✅ 確認済み" : ""}
-      `)
-      .addTo(map)
-  })
-}
+        const { emoji, color } = icons[s.type] || { emoji: "📍", color: "#27ae60" }
+        const icon = createIcon(emoji, color)(L)
+        L.marker([s.lat, s.lng], { icon })
+          .bindPopup(`
+            <b>${emoji} ${s.type}</b><br/>
+            ${s.description || ""}
+            ${s.verified ? "<br/>✅ 確認済み" : ""}
+          `)
+          .addTo(layers.spots)
+      })
+    }
 
     // ナワバリ表示
     async function loadTerritories() {
@@ -172,7 +192,7 @@ async function loadCatSpots() {
             fillOpacity: 0.25,
             weight: 2,
           },
-        }).addTo(map)
+        }).addTo(layers.territories)
       })
     }
 
@@ -235,7 +255,7 @@ async function loadCatSpots() {
             if (saved) {
               L.geoJSON(geojson, {
                 style: { color: "#4a90e2", fillOpacity: 0.25, weight: 2 },
-              }).addTo(map)
+              }).addTo(layers.territories)
               alert("ナワバリを保存しました。猫登録後に管理画面から紐付けできます。")
               window.location.href = "/cats/new"
             }
@@ -257,7 +277,7 @@ async function loadCatSpots() {
             color: catId ? "#e07a5f" : "#4a90e2",
             fillOpacity: 0.25, weight: 2,
           },
-        }).addTo(map)
+        }).addTo(layers.territories)
         if (catId) alert(`${catName}のナワバリとして保存しました！`)
         else alert("ナワバリを保存しました！")
       }
@@ -271,6 +291,17 @@ async function loadCatSpots() {
 
     return () => { map.removeControl(drawControl) }
   }, [map])
+
+  // 表示/非表示の切り替え
+  useEffect(() => {
+    if (!map) return
+    Object.entries(visibility).forEach(([key, visible]) => {
+      const layer = layersRef.current[key]
+      if (!layer) return
+      if (visible && !map.hasLayer(layer)) map.addLayer(layer)
+      if (!visible && map.hasLayer(layer)) map.removeLayer(layer)
+    })
+  }, [visibility, map])
 
   return null
 }
@@ -293,16 +324,59 @@ function LocateUser() {
   return null
 }
 
-export default function MapView() {
+function LayerToggle({ visibility, onToggle }) {
   return (
-    <MapContainer
-      center={[35.681, 139.767]}
-      zoom={13}
-      style={{ height: "calc(100vh - 56px)" }}
-    >
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <MapLayers />
-      <LocateUser />
-    </MapContainer>
+    <div style={toggleContainer}>
+      {LAYER_OPTIONS.map((opt) => (
+        <button
+          key={opt.key}
+          onClick={() => onToggle(opt.key)}
+          style={{
+            ...toggleBtn,
+            background: visibility[opt.key] ? "white" : "#f0e6e0",
+            color: visibility[opt.key] ? "#3d3230" : "#bbb",
+            borderColor: visibility[opt.key] ? "#f2c4a0" : "#e5ded9",
+          }}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
   )
+}
+
+export default function MapView() {
+  const [visibility, setVisibility] = useState({
+    sightings: true, stray: true, troubles: true, spots: true, territories: true,
+  })
+  const layersRef = useRef({})
+
+  function toggleLayer(key) {
+    setVisibility((v) => ({ ...v, [key]: !v[key] }))
+  }
+
+  return (
+    <div style={{ position: "relative" }}>
+      <LayerToggle visibility={visibility} onToggle={toggleLayer} />
+      <MapContainer
+        center={[35.681, 139.767]}
+        zoom={13}
+        style={{ height: "calc(100vh - 56px)" }}
+      >
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <MapLayers visibility={visibility} layersRef={layersRef} />
+        <LocateUser />
+      </MapContainer>
+    </div>
+  )
+}
+
+const toggleContainer = {
+  position: "absolute", top: 12, left: 12, zIndex: 1000,
+  display: "flex", flexWrap: "wrap", gap: 6, maxWidth: "calc(100% - 24px)",
+}
+const toggleBtn = {
+  padding: "6px 12px", borderRadius: 20, fontSize: 12,
+  border: "1px solid", cursor: "pointer", fontFamily: "inherit",
+  boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
 }

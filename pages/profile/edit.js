@@ -12,6 +12,8 @@ export default function EditProfile() {
     website: "", donation_info: "",
     donation_bank: "", donation_amazon: "",
     account_type: "general",
+    notification_preferences: { chat: true, memorial_report: true, trouble_response: true },
+    email_notifications_enabled: false,
   })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
@@ -26,7 +28,16 @@ export default function EditProfile() {
         .select("*")
         .eq("id", userData.user.id)
         .single()
-      if (data) setProfile(data)
+      if (data) {
+        setProfile({
+          ...data,
+          notification_preferences: {
+            chat: true, memorial_report: true, trouble_response: true,
+            ...(data.notification_preferences || {}),
+          },
+          email_notifications_enabled: !!data.email_notifications_enabled,
+        })
+      }
       loadMyScore(userData.user.id)
     }
     loadProfile()
@@ -62,6 +73,8 @@ export default function EditProfile() {
         donation_info: profile.donation_info,
         donation_bank: profile.donation_bank,
         donation_amazon: profile.donation_amazon,
+        notification_preferences: profile.notification_preferences,
+        email_notifications_enabled: profile.email_notifications_enabled,
       })
       .eq("id", userData.user.id)
 
@@ -135,6 +148,56 @@ export default function EditProfile() {
         style={inputStyle}
       />
 
+      <hr style={{ margin: "20px 0", border: "none", borderTop: "1px solid #f2c4a0" }} />
+      <h3 style={{ marginBottom: 16, color: "#e07a5f" }}>🔔 通知設定</h3>
+
+      <label style={checkboxRowStyle}>
+        <input
+          type="checkbox"
+          checked={profile.notification_preferences?.chat !== false}
+          onChange={(e) => setProfile({
+            ...profile,
+            notification_preferences: { ...profile.notification_preferences, chat: e.target.checked },
+          })}
+        />
+        💬 チャットの新着メッセージ
+      </label>
+      <label style={checkboxRowStyle}>
+        <input
+          type="checkbox"
+          checked={profile.notification_preferences?.memorial_report !== false}
+          onChange={(e) => setProfile({
+            ...profile,
+            notification_preferences: { ...profile.notification_preferences, memorial_report: e.target.checked },
+          })}
+        />
+        🕊️ 自分の猫への訃報報告
+      </label>
+      <label style={checkboxRowStyle}>
+        <input
+          type="checkbox"
+          checked={profile.notification_preferences?.trouble_response !== false}
+          onChange={(e) => setProfile({
+            ...profile,
+            notification_preferences: { ...profile.notification_preferences, trouble_response: e.target.checked },
+          })}
+        />
+        🙋 困りごと投稿への対応
+      </label>
+
+      <label style={{ ...checkboxRowStyle, marginTop: 12 }}>
+        <input
+          type="checkbox"
+          checked={!!profile.email_notifications_enabled}
+          onChange={(e) => setProfile({ ...profile, email_notifications_enabled: e.target.checked })}
+        />
+        📧 メールでも通知を受け取る
+      </label>
+      <p style={{ fontSize: 12, color: "#9e7b6e", marginBottom: 16, lineHeight: 1.6 }}>
+        ※ プッシュ通知はブラウザ・アプリ（右上のベルアイコン）で個別に許可が必要です。
+        上記のチェックは、許可済みの通知の中でどの種類を受け取るかの設定です。
+      </p>
+
       {message && (
         <p style={{ color: message.includes("失敗") ? "red" : "#43a047", marginBottom: 12 }}>
           {message}
@@ -153,6 +216,10 @@ export default function EditProfile() {
 
 const labelStyle = {
   display: "block", fontSize: 13, color: "#9e7b6e", marginBottom: 4,
+}
+const checkboxRowStyle = {
+  display: "flex", alignItems: "center", gap: 8,
+  fontSize: 14, color: "#3d3230", marginBottom: 10, cursor: "pointer",
 }
 const inputStyle = {
   display: "block", width: "100%", padding: "10px 12px",

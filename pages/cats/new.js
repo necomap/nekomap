@@ -4,6 +4,7 @@ import { useRouter } from "next/router"
 import { Cat } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { getImageEmbedding, embeddingToVectorLiteral } from "../../lib/catFaceAI"
+import { compressImage } from "../../lib/compressImage"
 
 export default function NewCat() {
   const router = useRouter()
@@ -28,10 +29,11 @@ export default function NewCat() {
     let faceEmbedding = null
 
     if (photo) {
-      const fileName = `${Date.now()}_${photo.name}`
+      const compressedPhoto = await compressImage(photo)
+      const fileName = `${Date.now()}_${compressedPhoto.name}`
       const { error: uploadError } = await supabase.storage
         .from("cat-photos")
-        .upload(fileName, photo)
+        .upload(fileName, compressedPhoto)
 
       if (uploadError) {
         setError("写真のアップロードに失敗しました")
@@ -47,7 +49,7 @@ export default function NewCat() {
       // AIで見た目の特徴を解析（猫顔識別機能用）。失敗しても登録は続行する。
       try {
         setAiStatus("analyzing")
-        const embedding = await getImageEmbedding(photo)
+        const embedding = await getImageEmbedding(compressedPhoto)
         faceEmbedding = embeddingToVectorLiteral(embedding)
         setAiStatus("done")
       } catch (e) {

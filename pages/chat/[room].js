@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { Send, Camera } from "lucide-react"
+import { compressImage } from "../../lib/compressImage"
 
 export default function ChatRoom() {
   const router = useRouter()
@@ -42,6 +43,10 @@ export default function ChatRoom() {
         .from("users").select("nickname, avatar, organization").eq("id", otherId).single()
       setOtherUser(otherProfile)
       setAccessChecked(true)
+
+      // この部屋を開いたことを記録（チャット一覧の未読表示に使う）
+      const myField = roomData.user_a === user.id ? "last_read_at_a" : "last_read_at_b"
+      await supabase.from("chat_rooms").update({ [myField]: new Date().toISOString() }).eq("id", room)
     }
     loadRoom()
   }, [room, user])
@@ -82,10 +87,11 @@ export default function ChatRoom() {
 
     let photoUrl = null
     if (photo) {
-      const fileName = `${Date.now()}_${photo.name}`
+      const compressedPhoto = await compressImage(photo)
+      const fileName = `${Date.now()}_${compressedPhoto.name}`
       const { error: uploadError } = await supabase.storage
         .from("cat-photos")
-        .upload(fileName, photo)
+        .upload(fileName, compressedPhoto)
       if (!uploadError) {
         const { data } = supabase.storage.from("cat-photos").getPublicUrl(fileName)
         photoUrl = data.publicUrl
@@ -114,7 +120,7 @@ export default function ChatRoom() {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${accessToken}`,
           },
-          body: JSON.stringify({ roomId: room, preview: sentText || "📷 画像を送信しました" }),
+          body: JSON.stringify({ type: "chat", roomId: room, preview: sentText || "📷 画像を送信しました" }),
         }).catch(() => {})
       }
     } catch (e) {
@@ -149,7 +155,7 @@ export default function ChatRoom() {
         background: "rgba(255,249,245,0.95)",
       }}>
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push("/chat")}
           style={{ background: "none", border: "none", cursor: "pointer", color: "#e07a5f", fontSize: 16, fontFamily: "inherit" }}
         >
           ←

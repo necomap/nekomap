@@ -6,6 +6,7 @@ import { MapPin } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import CatMatchSuggestions from "../../components/CatMatchSuggestions"
 import { searchAddressCandidates } from "../../lib/geocode"
+import { compressImage } from "../../lib/compressImage"
 import "leaflet/dist/leaflet.css"
 
 export default function NewSighting() {
@@ -114,9 +115,10 @@ export default function NewSighting() {
     let photoUrl = null
 
     if (photo) {
-      const fileName = `${Date.now()}_${photo.name}`
+      const compressedPhoto = await compressImage(photo)
+      const fileName = `${Date.now()}_${compressedPhoto.name}`
       const { error: uploadError } = await supabase.storage
-        .from("cat-photos").upload(fileName, photo)
+        .from("cat-photos").upload(fileName, compressedPhoto)
       if (!uploadError) {
         const { data } = supabase.storage.from("cat-photos").getPublicUrl(fileName)
         photoUrl = data.publicUrl

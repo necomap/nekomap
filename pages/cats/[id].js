@@ -110,6 +110,24 @@ export default function CatDetail() {
     setReportReason("")
     setShowReportForm(false)
     alert("登録者に伝わるよう報告しました。ご協力ありがとうございます。")
+
+    // 登録者にプッシュ・メール通知（失敗しても報告自体には影響させない）
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const accessToken = sessionData?.session?.access_token
+      if (accessToken) {
+        fetch("/api/push/send", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ type: "memorial_report", catId: id, reason }),
+        }).catch(() => {})
+      }
+    } catch (e) {
+      // 通知送信の失敗は報告機能に影響させない
+    }
   }
 
   async function addTnr() {

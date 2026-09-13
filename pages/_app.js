@@ -38,6 +38,16 @@ export default function App({ Component, pageProps }) {
     return () => listener?.subscription?.unsubscribe()
   }, [])
 
+  useEffect(() => {
+    // 通知の有無に関わらず、PWAとして「ホーム画面に追加」できるように
+    // Service Workerを登録しておく（iOSでの通知利用にはホーム画面追加が必須のため）
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch((e) => {
+        console.log("Service Worker登録に失敗:", e.message)
+      })
+    }
+  }, [])
+
   return (
     <>
       {!hideNavbar && <Navbar />}

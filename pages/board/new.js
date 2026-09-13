@@ -4,6 +4,7 @@ import { useRouter } from "next/router"
 import { checkPostLimit } from "../../lib/checkPostLimit"
 import { ClipboardList } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
+import { compressImage } from "../../lib/compressImage"
 
 const CATEGORIES = [
   { value: "lost", label: "🔍 猫探し" },
@@ -32,9 +33,10 @@ export default function NewPost() {
     let photoUrl = null
 
     if (photo) {
-      const fileName = `${Date.now()}_${photo.name}`
+      const compressedPhoto = await compressImage(photo)
+      const fileName = `${Date.now()}_${compressedPhoto.name}`
       const { error: uploadError } = await supabase.storage
-        .from("cat-photos").upload(fileName, photo)
+        .from("cat-photos").upload(fileName, compressedPhoto)
       if (!uploadError) {
         const { data } = supabase.storage.from("cat-photos").getPublicUrl(fileName)
         photoUrl = data.publicUrl

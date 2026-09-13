@@ -64,6 +64,24 @@ export default function Reports() {
 
     alert(`${volunteerName}として対応登録しました！`)
     loadReports()
+
+    // 投稿者にプッシュ・メール通知（失敗しても対応登録自体には影響させない）
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const accessToken = sessionData?.session?.access_token
+      if (accessToken) {
+        fetch("/api/push/send", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ type: "trouble_response", reportId: report.id }),
+        }).catch(() => {})
+      }
+    } catch (e) {
+      // 通知送信の失敗は対応登録機能に影響させない
+    }
   }
 
   async function handleResolve(id) {
