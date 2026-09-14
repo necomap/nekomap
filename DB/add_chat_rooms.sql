@@ -12,6 +12,13 @@
 --   ※現状のポリシーのままだと、room_id（会話のID）さえ分かれば
 --     他人同士の会話でも閲覧できてしまうため、今回メッセージ機能の
 --     入り口を新設するにあたり、あわせて修正する。
+--
+-- 【2026-09-14 追記】このファイルは初回実行時に
+--   「operator does not exist: uuid = text」エラーになった
+--   （chats.sender / chats.room_id が text型、chat_rooms側はuuid型のため）。
+--   実際にSupabaseへ適用したのは下記の ::text キャストを加えた版であり、
+--   本ファイルはそれに合わせて更新済み（このファイル自体を再実行しても
+--   同じ結果になるよう修正してある）。
 -- ============================================================
 
 -- 1. チャットルーム（会話の当事者2人）を管理するテーブル
@@ -46,7 +53,7 @@ create policy "当事者のみ閲覧可能"
   using (
     exists (
       select 1 from public.chat_rooms r
-      where r.id = chats.room_id
+      where r.id::text = chats.room_id
         and (r.user_a = auth.uid() or r.user_b = auth.uid())
     )
   );
@@ -56,10 +63,10 @@ drop policy if exists "当事者のみ投稿可能" on public.chats;
 create policy "当事者のみ投稿可能"
   on public.chats for insert
   with check (
-    auth.uid() = sender
+    auth.uid()::text = sender
     and exists (
       select 1 from public.chat_rooms r
-      where r.id = chats.room_id
+      where r.id::text = chats.room_id
         and (r.user_a = auth.uid() or r.user_b = auth.uid())
     )
   );
