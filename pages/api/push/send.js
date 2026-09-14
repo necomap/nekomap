@@ -17,7 +17,11 @@
 //                 任意で RESEND_FROM_EMAIL（未設定時は onboarding@resend.dev を使用。
 //                 これはResendの共有テスト送信元のため、独自ドメインを
 //                 Resendで認証すれば、そのドメインのアドレスに変更できる）
-//                 任意で NEXT_PUBLIC_SITE_URL（メール本文のリンク用。未設定時は本番URL固定値）
+//                 任意で SITE_URL（メール本文のリンク用。未設定時は本番URL固定値。
+//                 ブラウザに公開する必要がない値なのでNEXT_PUBLIC_プレフィックスは付けない。
+//                 ※Vercelのダッシュボードでは NEXT_PUBLIC_ 付きだと
+//                   「ブラウザに公開されます」という警告でSaveがブロックされるため、
+//                   この名前（SITE_URL）で登録すること）
 //
 // どちらも未設定でも他方は動くようにしてあり、両方未設定でも
 // チャット送信など呼び出し元の処理自体は失敗しない。
@@ -156,7 +160,7 @@ export default async function handler(req, res) {
   if (resendApiKey && recipient?.email_notifications_enabled && recipient?.email) {
     try {
       const resend = new Resend(resendApiKey)
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://neko-map-app.vercel.app"
+      const siteUrl = process.env.SITE_URL || "https://neko-map-app.vercel.app"
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || "NekoMap <onboarding@resend.dev>",
         to: recipient.email,
