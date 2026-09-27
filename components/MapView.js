@@ -42,6 +42,7 @@ const LAYER_OPTIONS = [
   { key: "stray", label: "🐈 野良猫" },
   { key: "troubles", label: "⚠️ 困りごと" },
   { key: "spots", label: "📍 スポット" },
+  { key: "adoptions", label: "🏠 里親募集" },
   { key: "territories", label: "🗺️ ナワバリ" },
 ]
 
@@ -67,6 +68,7 @@ function MapLayers({ visibility, layersRef }) {
       stray: L.markerClusterGroup(),
       troubles: L.markerClusterGroup(),
       spots: L.markerClusterGroup(),
+      adoptions: L.markerClusterGroup(),
       territories: L.layerGroup(),
     }
     layersRef.current = layers
@@ -190,6 +192,27 @@ function MapLayers({ visibility, layersRef }) {
       })
     }
 
+    // 里親募集ピン（募集中のみ、位置情報が設定されているもの）
+    async function loadAdoptions() {
+      const { data } = await supabase
+        .from("adoptions")
+        .select("id, name, fee_amount, photo, lat, lng")
+        .eq("status", "募集中")
+      if (!data) return
+      const icon = createIcon("🏠", "#4a90e2")(L)
+      data.forEach((a) => {
+        if (!a.lat || !a.lng) return
+        L.marker([a.lat, a.lng], { icon })
+          .bindPopup(`
+            <b>🏠 ${escapeHtml(a.name)}</b><br/>
+            ${a.fee_amount > 0 ? `負担金額: ${Number(a.fee_amount).toLocaleString()}円` : "負担金額: 無料"}<br/>
+            ${a.photo ? `<img src="${escapeHtml(a.photo)}" style="width:100%;margin-top:8px;border-radius:4px"/>` : ""}
+            <br/><a href="/adoption/${a.id}" style="color:#4a90e2;font-size:13px">🏠 詳細を見る →</a>
+          `)
+          .addTo(layers.adoptions)
+      })
+    }
+
     // ナワバリ表示
     async function loadTerritories() {
       const { data } = await supabase.from("territories").select("*")
@@ -297,6 +320,7 @@ function MapLayers({ visibility, layersRef }) {
     loadStrayReports()
     loadTroubles()
     loadCatSpots()
+    loadAdoptions()
 
     return () => { map.removeControl(drawControl) }
   }, [map])
@@ -356,7 +380,7 @@ function LayerToggle({ visibility, onToggle }) {
 
 export default function MapView() {
   const [visibility, setVisibility] = useState({
-    sightings: true, stray: true, troubles: true, spots: true, territories: true,
+    sightings: true, stray: true, troubles: true, spots: true, adoptions: true, territories: true,
   })
   const layersRef = useRef({})
 

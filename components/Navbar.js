@@ -174,6 +174,9 @@ export default function Navbar() {
             <button onClick={() => go("/board")} style={menuBtn}>
               <ClipboardList size={16} /> 掲示板
             </button>
+            <button onClick={() => go("/adoption")} style={menuBtn}>
+              <Home size={16} /> 里親募集
+            </button>
             <button onClick={() => go("/volunteer")} style={menuBtn}>
               <Users size={16} /> ボランティア募集
             </button>
