@@ -8,9 +8,10 @@ export default function Donate() {
 
   useEffect(() => {
     async function loadOrgs() {
+      // usersテーブル本体は本人・管理者のみ閲覧可のため、公開列だけを持つビューを使う
       const { data } = await supabase
-        .from("users")
-        .select("id, nickname, name, organization, website, donation_info, donation_bank, donation_amazon, account_type")
+        .from("public_profiles")
+        .select("id, nickname, organization, website, donation_info, donation_bank, donation_amazon, account_type")
         .order("created_at", { ascending: false })
       setOrgs((data || []).filter((o) =>
         o.donation_info || o.donation_bank || o.donation_amazon
@@ -42,7 +43,7 @@ export default function Donate() {
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: 16 }}>
-                {org.organization || org.nickname || org.name}
+                {org.organization || org.nickname}
               </h3>
               {org.account_type === "organization" && (
                 <span style={{

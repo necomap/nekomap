@@ -33,7 +33,8 @@ export default function ChatList() {
           const myLastRead = r.user_a === uid ? r.last_read_at_a : r.last_read_at_b
 
           const [{ data: otherUser }, { data: lastMsgs }] = await Promise.all([
-            supabase.from("users").select("nickname, avatar, organization").eq("id", otherId).single(),
+            // usersテーブル本体は本人・管理者のみ閲覧可のため、公開列だけを持つビューを使う
+            supabase.from("public_profiles").select("nickname, avatar, organization").eq("id", otherId).single(),
             supabase
               .from("chats")
               .select("message, photo, sender, created_at")

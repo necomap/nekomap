@@ -26,13 +26,24 @@ export default function BoardDetail() {
       const { data: userData } = await supabase.auth.getUser()
       setUser(userData.user)
 
+      // usersテーブル本体は本人・管理者のみ閲覧可のため、FK自動埋め込みは使えない。
+      // 投稿を取得後、投稿者の公開プロフィールをpublic_profilesビューから別途取得する。
       const { data, error } = await supabase
         .from("posts")
-        .select("*, users(nickname, avatar, organization)")
+        .select("*")
         .eq("id", id)
         .single()
       if (error) console.log("投稿取得エラー:", error.message)
-      setPost(data)
+      if (data?.created_by) {
+        const { data: profile } = await supabase
+          .from("public_profiles")
+          .select("nickname, avatar, organization")
+          .eq("id", data.created_by)
+          .single()
+        setPost({ ...data, users: profile || null })
+      } else {
+        setPost(data)
+      }
       setLoading(false)
     }
     load()

@@ -2,6 +2,18 @@ import { useEffect, useRef } from "react"
 import "leaflet/dist/leaflet.css"
 import { blurLocation } from "../lib/blurLocation"
 
+// Leafletのpopupは生HTML文字列を描画するため（Reactと違い自動エスケープされない）、
+// ユーザー入力を含む値は必ずこの関数でエスケープしてから埋め込む（保存型XSS対策）
+function escapeHtml(value) {
+  if (value === null || value === undefined) return ""
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
 export default function CatMap({ sightings, territory, userType = "general" }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
@@ -31,7 +43,7 @@ export default function CatMap({ sightings, territory, userType = "general" }) {
       const marker = L.circleMarker([pos.lat, pos.lng], {
         radius: 8, color: "#e07a5f", fillColor: "#e07a5f", fillOpacity: 0.7,
       })
-      marker.bindPopup(`📍 ${new Date(s.created_at).toLocaleDateString("ja-JP")}<br/>${s.description || ""}`)
+      marker.bindPopup(`📍 ${new Date(s.created_at).toLocaleDateString("ja-JP")}<br/>${escapeHtml(s.description || "")}`)
       marker.addTo(map)
       bounds.push([pos.lat, pos.lng])
     })

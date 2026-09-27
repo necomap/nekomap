@@ -21,11 +21,23 @@ export default function Volunteer() {
   }, [])
 
   async function loadRequests() {
+    // usersテーブル本体は本人・管理者のみ閲覧可のため、FK自動埋め込みは使えない。
+    // 募集を取得後、投稿者の公開プロフィールをpublic_profilesビューから別途取得して合成する。
     const { data } = await supabase
       .from("volunteer_requests")
-      .select("*, users(nickname, organization)")
+      .select("*")
       .order("created_at", { ascending: false })
-    setRequests(data || [])
+    const reqs = data || []
+    const creatorIds = [...new Set(reqs.map((r) => r.created_by).filter(Boolean))]
+    let profileMap = {}
+    if (creatorIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("public_profiles")
+        .select("id, nickname, organization")
+        .in("id", creatorIds)
+      profileMap = Object.fromEntries((profiles || []).map((p) => [p.id, p]))
+    }
+    setRequests(reqs.map((r) => ({ ...r, users: profileMap[r.created_by] || null })))
   }
 
   async function handleApply(req) {

@@ -39,8 +39,9 @@ export default function ChatRoom() {
       if (!roomData) { setHasAccess(false); setAccessChecked(true); return }
 
       const otherId = roomData.user_a === user.id ? roomData.user_b : roomData.user_a
+      // usersテーブル本体は本人・管理者のみ閲覧可のため、公開列だけを持つビューを使う
       const { data: otherProfile } = await supabase
-        .from("users").select("nickname, avatar, organization").eq("id", otherId).single()
+        .from("public_profiles").select("nickname, avatar, organization").eq("id", otherId).single()
       setOtherUser(otherProfile)
       setAccessChecked(true)
 

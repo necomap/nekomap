@@ -12,13 +12,6 @@
 --   ※現状のポリシーのままだと、room_id（会話のID）さえ分かれば
 --     他人同士の会話でも閲覧できてしまうため、今回メッセージ機能の
 --     入り口を新設するにあたり、あわせて修正する。
---
--- 【2026-09-14 追記】このファイルは初回実行時に
---   「operator does not exist: uuid = text」エラーになった
---   （chats.sender / chats.room_id が text型、chat_rooms側はuuid型のため）。
---   実際にSupabaseへ適用したのは下記の ::text キャストを加えた版であり、
---   本ファイルはそれに合わせて更新済み（このファイル自体を再実行しても
---   同じ結果になるよう修正してある）。
 -- ============================================================
 
 -- 1. チャットルーム（会話の当事者2人）を管理するテーブル
@@ -35,15 +28,21 @@ create unique index if not exists chat_rooms_pair_idx
 
 alter table public.chat_rooms enable row level security;
 
+-- 【重要】chats.room_id は text型・chats.sender は uuid型・chat_rooms.id/user_a/user_b は uuid型。
+-- room_idとchat_rooms.idの比較、およびsender/user_a/user_bとauth.uid()の比較は
+-- 型が食い違う（もしくは食い違う可能性がある）ため、実際に適用したバージョンでは
+-- 両辺を::textキャストしてから比較している。以下はSupabaseに実際に適用済みの内容と
+-- 一致させたもの（本ファイルの旧版は片側キャストのみで、これは実態と異なる誤りだった）。
+
 drop policy if exists "当事者のみ閲覧可能" on public.chat_rooms;
 create policy "当事者のみ閲覧可能"
   on public.chat_rooms for select
-  using (auth.uid() = user_a or auth.uid() = user_b);
+  using ((auth.uid())::text = (user_a)::text or (auth.uid())::text = (user_b)::text);
 
 drop policy if exists "当事者として作成可能" on public.chat_rooms;
 create policy "当事者として作成可能"
   on public.chat_rooms for insert
-  with check (auth.uid() = user_a or auth.uid() = user_b);
+  with check ((auth.uid())::text = (user_a)::text or (auth.uid())::text = (user_b)::text);
 
 -- 2. chats テーブルのRLSを厳格化（当事者のみ閲覧・投稿可能に）
 drop policy if exists "ログイン済みユーザーが閲覧可能" on public.chats;
@@ -53,8 +52,8 @@ create policy "当事者のみ閲覧可能"
   using (
     exists (
       select 1 from public.chat_rooms r
-      where r.id::text = chats.room_id
-        and (r.user_a = auth.uid() or r.user_b = auth.uid())
+      where (r.id)::text = chats.room_id
+        and ((r.user_a)::text = (auth.uid())::text or (r.user_b)::text = (auth.uid())::text)
     )
   );
 
@@ -63,11 +62,11 @@ drop policy if exists "当事者のみ投稿可能" on public.chats;
 create policy "当事者のみ投稿可能"
   on public.chats for insert
   with check (
-    auth.uid()::text = sender
+    (auth.uid())::text = (sender)::text
     and exists (
       select 1 from public.chat_rooms r
-      where r.id::text = chats.room_id
-        and (r.user_a = auth.uid() or r.user_b = auth.uid())
+      where (r.id)::text = chats.room_id
+        and ((r.user_a)::text = (auth.uid())::text or (r.user_b)::text = (auth.uid())::text)
     )
   );
 

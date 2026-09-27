@@ -5,7 +5,18 @@ import "leaflet-draw/dist/leaflet.draw.css"
 import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import { supabase } from "../lib/supabase"
-import { blurLocation } from "../lib/blurLocation"
+
+// Leafletのpopupは生HTML文字列を描画するため（Reactと違い自動エスケープされない）、
+// ユーザー入力を含む値は必ずこの関数でエスケープしてから埋め込む（保存型XSS対策）
+function escapeHtml(value) {
+  if (value === null || value === undefined) return ""
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
 
 function createIcon(emoji, color) {
   return (L) => L.divIcon({
@@ -72,23 +83,21 @@ function MapLayers({ visibility, layersRef }) {
         userType = profile?.role === "admin" ? "admin" : profile?.account_type || "general"
       }
 
-      const { data, error } = await supabase
-        .from("sightings")
-        .select("*, cats(name)")
+      // 位置情報のぼかしをサーバー側(DB関数)で保証するため、生テーブルではなくRPC経由で取得する
+      // （管理者・団体・投稿者本人には正確な座標、それ以外にはDB側でぼかした座標が返る）
+      const { data, error } = await supabase.rpc("get_blurred_sightings")
 
       if (error) { console.log("sightings取得エラー:", error.message); return }
       if (!data) return
       const icon = createIcon("🐱", "#e07a5f")(L)
-      // 管理者・団体アカウント以外には、実際の座標ではなくぼかした座標でピンを立てる
       const isPrivileged = userType === "admin" || userType === "organization"
       data.forEach((s) => {
         if (!s.lat || !s.lng) return
-        const pos = blurLocation(s.lat, s.lng, userType)
-        L.marker([pos.lat, pos.lng], { icon })
+        L.marker([s.lat, s.lng], { icon })
           .bindPopup(`
-            <b>🐱 ${s.cats?.name || "地域猫"}</b><br/>
-            ${s.description || ""}<br/>
-            ${s.photo ? `<img src="${s.photo}" style="width:100%;margin-top:8px;border-radius:4px"/>` : ""}
+            <b>🐱 ${escapeHtml(s.cat_name || "地域猫")}</b><br/>
+            ${escapeHtml(s.description || "")}<br/>
+            ${s.photo ? `<img src="${escapeHtml(s.photo)}" style="width:100%;margin-top:8px;border-radius:4px"/>` : ""}
             ${s.cat_id ? `<br/><a href="/cats/${s.cat_id}" style="color:#e07a5f;font-size:13px">🐱 猫の詳細を見る →</a>` : ""}
             ${!isPrivileged ? "<br/><small style='color:#999'>※位置は約100mぼかしています</small>" : ""}
           `)
@@ -108,9 +117,9 @@ function MapLayers({ visibility, layersRef }) {
         L.marker([s.lat, s.lng], { icon })
           .bindPopup(`
             <b>🐈 野良猫目撃</b><br/>
-            ${s.features || ""}<br/>
-            ${s.comment || ""}<br/>
-            ${s.photo ? `<img src="${s.photo}" style="width:100%;margin-top:8px;border-radius:4px"/>` : ""}
+            ${escapeHtml(s.features || "")}<br/>
+            ${escapeHtml(s.comment || "")}<br/>
+            ${s.photo ? `<img src="${escapeHtml(s.photo)}" style="width:100%;margin-top:8px;border-radius:4px"/>` : ""}
           `)
           .addTo(layers.stray)
       })
@@ -132,10 +141,10 @@ function MapLayers({ visibility, layersRef }) {
         const icon = createIcon(emoji, color)(L)
         L.marker([t.lat, t.lng], { icon })
           .bindPopup(`
-            <b>${emoji} ${t.type}</b><br/>
-            ${t.description || ""}<br/>
-            <span style="color:${t.status === "対応済" ? "green" : "orange"}">${t.status}</span>
-            ${t.action ? `<br/>対策: ${t.action}` : ""}
+            <b>${emoji} ${escapeHtml(t.type)}</b><br/>
+            ${escapeHtml(t.description || "")}<br/>
+            <span style="color:${t.status === "対応済" ? "green" : "orange"}">${escapeHtml(t.status)}</span>
+            ${t.action ? `<br/>対策: ${escapeHtml(t.action)}` : ""}
           `)
           .addTo(layers.troubles)
       })
@@ -173,8 +182,8 @@ function MapLayers({ visibility, layersRef }) {
         const icon = createIcon(emoji, color)(L)
         L.marker([s.lat, s.lng], { icon })
           .bindPopup(`
-            <b>${emoji} ${s.type}</b><br/>
-            ${s.description || ""}
+            <b>${emoji} ${escapeHtml(s.type)}</b><br/>
+            ${escapeHtml(s.description || "")}
             ${s.verified ? "<br/>✅ 確認済み" : ""}
           `)
           .addTo(layers.spots)

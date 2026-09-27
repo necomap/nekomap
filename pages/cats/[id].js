@@ -50,10 +50,10 @@ export default function CatDetail() {
       if (catError) console.log("catエラー:", catError.message)
       setCat(catData)
 
+      // 位置情報のぼかしをサーバー側(DB関数)で保証するため、生テーブルではなくRPC経由で取得
       const { data: sightingData } = await supabase
-        .from("sightings").select("*").eq("cat_id", id)
-        .order("created_at", { ascending: false })
-      setSightings(sightingData || [])
+        .rpc("get_blurred_sightings", { p_cat_id: id })
+      setSightings((sightingData || []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)))
 
       const { data: healthData } = await supabase
         .from("health_records").select("*").eq("cat_id", id)

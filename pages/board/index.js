@@ -29,9 +29,11 @@ export default function Board() {
   }, [category])
 
   async function loadPosts() {
+    // usersテーブル本体は本人・管理者のみ閲覧可のため、FK自動埋め込み(users(...))は使えない。
+    // 投稿だけ取得し、投稿者の公開プロフィールをpublic_profilesビューから別途取得して合成する。
     let query = supabase
       .from("posts")
-      .select("*, users(nickname, avatar, organization)")
+      .select("*")
       .eq("hidden", false)
       .order("created_at", { ascending: false })
 
@@ -40,7 +42,17 @@ export default function Board() {
     }
 
     const { data } = await query
-    setPosts(data || [])
+    const posts = data || []
+    const authorIds = [...new Set(posts.map((p) => p.created_by).filter(Boolean))]
+    let profileMap = {}
+    if (authorIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("public_profiles")
+        .select("id, nickname, avatar, organization")
+        .in("id", authorIds)
+      profileMap = Object.fromEntries((profiles || []).map((p) => [p.id, p]))
+    }
+    setPosts(posts.map((p) => ({ ...p, users: profileMap[p.created_by] || null })))
   }
 
   async function handleReport(postId) {

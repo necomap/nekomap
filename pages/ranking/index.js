@@ -27,12 +27,13 @@ export default function Ranking() {
     setLoading(true)
     const cutoff = getPeriodCutoff(currentPeriod)
 
-    // 表示名解決用にユーザー一覧を先に取得
+    // 表示名解決用にユーザー一覧を先に取得（公開列のみを持つビューを使用。
+    // usersテーブル本体は本人・管理者のみ閲覧可のため直接は使えない）
     const { data: usersData } = await supabase
-      .from("users").select("id, nickname, name, organization")
+      .from("public_profiles").select("id, nickname, organization")
     const nameOf = (id) => {
       const u = usersData?.find((x) => x.id === id)
-      return u?.organization || u?.nickname || u?.name || "匿名"
+      return u?.organization || u?.nickname || "匿名"
     }
 
     function applyCutoff(query, column = "created_at") {
@@ -48,9 +49,13 @@ export default function Ranking() {
       tnrCounts[org] = (tnrCounts[org] || 0) + 1
     })
 
-    // 2. 目撃情報投稿数
-    let sightingQuery = supabase.from("sightings").select("created_by, created_at")
-    const { data: sightingData } = await applyCutoff(sightingQuery)
+    // 2. 目撃情報投稿数（sightingsは本人・管理者のみ直接閲覧可のため、
+    //    全件集計にはRPC(get_blurred_sightings)経由で取得する。座標は使わないので無視）
+    const { data: sightingDataRaw } = await supabase.rpc("get_blurred_sightings")
+    const cutoffTime = cutoff ? new Date(cutoff).getTime() : null
+    const sightingData = (sightingDataRaw || []).filter(
+      (s) => !cutoffTime || new Date(s.created_at).getTime() >= cutoffTime
+    )
     const sightingCounts = {}
     sightingData?.forEach((s) => {
       if (!s.created_by) return
