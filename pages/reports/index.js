@@ -3,6 +3,8 @@ import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { AlertTriangle } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
+import RegionSelector from "../../components/RegionSelector"
+import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
 
 const TYPE_LABELS = {
   feces: "💩 糞尿被害",
@@ -23,6 +25,7 @@ export default function Reports() {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [filter, setFilter] = useState("all")
+  const { region, changeRegion } = useRegionFilter()
 
   useEffect(() => {
     async function init() {
@@ -95,7 +98,7 @@ export default function Reports() {
     loadReports()
   }
 
-  const filtered = reports.filter((r) => {
+  const filtered = filterByRegion(reports, region).filter((r) => {
     if (filter === "all") return true
     return r.status === filter
   })
@@ -108,6 +111,8 @@ export default function Reports() {
           ＋ 報告する
         </button>
       </div>
+
+      <RegionSelector region={region ?? ""} onChange={changeRegion} />
 
       <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
         {["all", "未対応", "対応中", "解決"].map((s) => (

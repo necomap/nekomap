@@ -5,6 +5,7 @@ import "leaflet-draw/dist/leaflet.draw.css"
 import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import { supabase } from "../lib/supabase"
+import { PREFECTURE_CENTERS } from "../lib/prefectures"
 
 // Leafletのpopupは生HTML文字列を描画するため（Reactと違い自動エスケープされない）、
 // ユーザー入力を含む値は必ずこの関数でエスケープしてから埋め込む（保存型XSS対策）
@@ -343,13 +344,27 @@ function LocateUser() {
   const map = useMap()
 
   useEffect(() => {
-    if (!navigator.geolocation) return
+    // 現在地が取得できない・拒否された場合は、ログイン中ならアカウントの
+    // デフォルト地域（都道府県）の中心にフォールバックする（ピンの表示自体は常に全国のまま）
+    async function fallbackToDefaultPrefecture() {
+      const { data: userData } = await supabase.auth.getUser()
+      if (!userData.user) return
+      const { data: profile } = await supabase
+        .from("users").select("default_prefecture").eq("id", userData.user.id).single()
+      const center = profile?.default_prefecture && PREFECTURE_CENTERS[profile.default_prefecture]
+      if (center) map.setView(center, 11)
+    }
+
+    if (!navigator.geolocation) {
+      fallbackToDefaultPrefecture()
+      return
+    }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         map.setView([pos.coords.latitude, pos.coords.longitude], 14)
       },
       () => {
-        // 位置情報が使えない・拒否された場合は初期表示（東京中心）のまま
+        fallbackToDefaultPrefecture()
       }
     )
   }, [map])

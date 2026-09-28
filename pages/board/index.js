@@ -2,6 +2,8 @@ import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import AdBanner from "../../components/AdBanner"
+import RegionSelector from "../../components/RegionSelector"
+import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
 
 const CATEGORIES = [
   { value: "all", label: "すべて" },
@@ -18,6 +20,7 @@ export default function Board() {
   const [category, setCategory] = useState("all")
   const [search, setSearch] = useState("")
   const [user, setUser] = useState(null)
+  const { region, changeRegion } = useRegionFilter()
 
   useEffect(() => {
     async function init() {
@@ -78,7 +81,7 @@ export default function Board() {
     loadPosts()
   }
 
-  const filtered = posts.filter((p) =>
+  const filtered = filterByRegion(posts, region).filter((p) =>
     search === "" ||
     p.title?.includes(search) ||
     p.body?.includes(search)
@@ -94,6 +97,8 @@ export default function Board() {
       </div>
 
       <AdBanner />
+
+      <RegionSelector region={region ?? ""} onChange={changeRegion} />
 
       <input
         placeholder="🔎 キーワードで検索"

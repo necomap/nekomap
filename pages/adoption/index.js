@@ -4,6 +4,8 @@ import { useRouter } from "next/router"
 import { Home, Plus } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { getOrCreateDmRoom } from "../../lib/chatRoom"
+import RegionSelector from "../../components/RegionSelector"
+import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
 
 export default function AdoptionList() {
   const router = useRouter()
@@ -11,6 +13,7 @@ export default function AdoptionList() {
   const [statusFilter, setStatusFilter] = useState("募集中")
   const [user, setUser] = useState(null)
   const [contactingId, setContactingId] = useState(null)
+  const { region, changeRegion } = useRegionFilter()
 
   useEffect(() => {
     async function init() {
@@ -48,7 +51,7 @@ export default function AdoptionList() {
     }
   }
 
-  const filtered = listings.filter((l) => statusFilter === "all" || l.status === statusFilter)
+  const filtered = filterByRegion(listings, region).filter((l) => statusFilter === "all" || l.status === statusFilter)
 
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
@@ -57,6 +60,8 @@ export default function AdoptionList() {
         新しい飼い主を探している猫の一覧です。閲覧・コンタクトはログインなしでも見られますが、
         コンタクトを取るにはログインが必要です。
       </p>
+
+      <RegionSelector region={region ?? ""} onChange={changeRegion} />
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
         {[

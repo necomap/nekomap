@@ -5,6 +5,7 @@ import { checkPostLimit } from "../../lib/checkPostLimit"
 import { ClipboardList } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { compressImage } from "../../lib/compressImage"
+import { PREFECTURES } from "../../lib/prefectures"
 
 const CATEGORIES = [
   { value: "lost", label: "🔍 猫探し" },
@@ -20,6 +21,7 @@ export default function NewPost() {
   const [body, setBody] = useState("")
   const [category, setCategory] = useState("general")
   const [photo, setPhoto] = useState(null)
+  const [prefecture, setPrefecture] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -46,6 +48,7 @@ export default function NewPost() {
     const { data: userData } = await supabase.auth.getUser()
     const { error } = await supabase.from("posts").insert({
       title, body, category, photo: photoUrl,
+      prefecture: prefecture || null,
       created_by: userData.user?.id,
     })
 
@@ -95,6 +98,16 @@ export default function NewPost() {
         <span style={{ display: "block", marginBottom: 4, color: "#9e7b6e", fontSize: 13 }}>写真（任意）</span>
         <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files[0])} />
       </label>
+
+      <label style={{ display: "block", marginBottom: 4, color: "#9e7b6e", fontSize: 13 }}>
+        都道府県（任意。設定すると地域絞り込みの対象になります）
+      </label>
+      <select value={prefecture} onChange={(e) => setPrefecture(e.target.value)} style={inputStyle}>
+        <option value="">未設定</option>
+        {PREFECTURES.map((p) => (
+          <option key={p} value={p}>{p}</option>
+        ))}
+      </select>
 
       {error && <p style={{ color: "red", marginBottom: 12 }}>{error}</p>}
 

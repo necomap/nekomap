@@ -4,6 +4,7 @@ import { useRouter } from "next/router"
 import { Settings, Trophy } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { POINTS, getBadge } from "../../lib/badges"
+import { PREFECTURES } from "../../lib/prefectures"
 
 export default function EditProfile() {
   const router = useRouter()
@@ -12,6 +13,7 @@ export default function EditProfile() {
     website: "", donation_info: "",
     donation_bank: "", donation_amazon: "",
     account_type: "general",
+    default_prefecture: "",
     notification_preferences: { chat: true, memorial_report: true, trouble_response: true },
     email_notifications_enabled: false,
   })
@@ -73,6 +75,7 @@ export default function EditProfile() {
         donation_info: profile.donation_info,
         donation_bank: profile.donation_bank,
         donation_amazon: profile.donation_amazon,
+        default_prefecture: profile.default_prefecture || null,
         notification_preferences: profile.notification_preferences,
         email_notifications_enabled: profile.email_notifications_enabled,
       })
@@ -120,6 +123,24 @@ export default function EditProfile() {
 
       <label style={labelStyle}>ホームページ</label>
       <input placeholder="https://" value={profile.website || ""} onChange={(e) => setProfile({ ...profile, website: e.target.value })} style={inputStyle} />
+
+      <hr style={{ margin: "20px 0", border: "none", borderTop: "1px solid #f2c4a0" }} />
+      <h3 style={{ marginBottom: 16, color: "#e07a5f" }}>📍 表示地域</h3>
+      <p style={{ fontSize: 13, color: "#9e7b6e", marginBottom: 12, lineHeight: 1.6 }}>
+        設定すると、困りごと・里親募集・ボランティア募集などの一覧がデフォルトでこの地域のみ表示されます。
+        未設定の場合は全国の情報が表示されます（各画面で一時的に地域を変更することもできます）。
+      </p>
+      <label style={labelStyle}>デフォルト地域（都道府県）</label>
+      <select
+        value={profile.default_prefecture || ""}
+        onChange={(e) => setProfile({ ...profile, default_prefecture: e.target.value })}
+        style={inputStyle}
+      >
+        <option value="">🌏 全国（絞り込みなし）</option>
+        {PREFECTURES.map((p) => (
+          <option key={p} value={p}>{p}</option>
+        ))}
+      </select>
 
       <hr style={{ margin: "20px 0", border: "none", borderTop: "1px solid #f2c4a0" }} />
       <h3 style={{ marginBottom: 16, color: "#e07a5f" }}>💝 寄付情報（任意）</h3>

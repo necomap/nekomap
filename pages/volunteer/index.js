@@ -4,12 +4,15 @@ import { useRouter } from "next/router"
 import { Users } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { getOrCreateDmRoom } from "../../lib/chatRoom"
+import RegionSelector from "../../components/RegionSelector"
+import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
 
 export default function Volunteer() {
   const router = useRouter()
   const [requests, setRequests] = useState([])
   const [user, setUser] = useState(null)
   const [applyingId, setApplyingId] = useState(null)
+  const { region, changeRegion } = useRegionFilter()
 
   useEffect(() => {
     async function init() {
@@ -55,6 +58,8 @@ export default function Volunteer() {
     }
   }
 
+  const filtered = filterByRegion(requests, region)
+
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
@@ -64,11 +69,13 @@ export default function Volunteer() {
         </button>
       </div>
 
-      {requests.length === 0 && (
+      <RegionSelector region={region ?? ""} onChange={changeRegion} />
+
+      {filtered.length === 0 && (
         <p style={{ color: "#999", textAlign: "center" }}>募集中の案件はありません</p>
       )}
 
-      {requests.map((req) => (
+      {filtered.map((req) => (
         <div key={req.id} style={cardStyle}>
           <h3 style={{ margin: "0 0 8px" }}>{req.title}</h3>
           {(req.users?.nickname || req.users?.organization) && (

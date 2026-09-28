@@ -4,8 +4,9 @@ import { useRouter } from "next/router"
 import { checkPostLimit } from "../../lib/checkPostLimit"
 import { AlertTriangle } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
-import { searchAddressCandidates } from "../../lib/geocode"
+import { searchAddressCandidates, reverseGeocodeToPrefecture } from "../../lib/geocode"
 import { compressImage } from "../../lib/compressImage"
+import { PREFECTURES } from "../../lib/prefectures"
 import "leaflet/dist/leaflet.css"
 
 const TYPES = [
@@ -23,6 +24,7 @@ export default function NewReport() {
   const [lat, setLat] = useState("")
   const [lng, setLng] = useState("")
   const [address, setAddress] = useState("")
+  const [prefecture, setPrefecture] = useState("")
   const [locationMode, setLocationMode] = useState("gps")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -108,6 +110,16 @@ export default function NewReport() {
     setCandidates([])
   }
 
+  // 位置が確定するたびに、都道府県を自動判定する（手動で選び直すこともできる）
+  useEffect(() => {
+    if (!lat || !lng) return
+    let cancelled = false
+    reverseGeocodeToPrefecture(lat, lng).then((pref) => {
+      if (!cancelled && pref) setPrefecture(pref)
+    })
+    return () => { cancelled = true }
+  }, [lat, lng])
+
   async function handleSubmit() {
     const limit = await checkPostLimit("trouble_reports")
     if (!limit.ok) { setError(limit.message); return }
@@ -135,6 +147,7 @@ export default function NewReport() {
       lat: lat ? parseFloat(lat) : null,
       lng: lng ? parseFloat(lng) : null,
       address,
+      prefecture: prefecture || null,
       created_by: userData.user?.id,
     })
 
@@ -250,6 +263,16 @@ export default function NewReport() {
           {selectedPlace && <p style={{ fontSize: 12, color: "#2e7d32", marginBottom: 12 }}>✅ {selectedPlace}</p>}
         </>
       )}
+
+      <label style={{ display: "block", marginBottom: 4, color: "#9e7b6e", fontSize: 13 }}>
+        都道府県（位置情報から自動入力。違う場合は選び直してください）
+      </label>
+      <select value={prefecture} onChange={(e) => setPrefecture(e.target.value)} style={inputStyle}>
+        <option value="">未設定</option>
+        {PREFECTURES.map((p) => (
+          <option key={p} value={p}>{p}</option>
+        ))}
+      </select>
 
       {error && <p style={{ color: "red", marginBottom: 12 }}>{error}</p>}
 
