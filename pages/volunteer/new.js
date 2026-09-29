@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Users } from "lucide-react"
+import { Users, Search, MapPin, CheckCircle2 } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { searchAddressCandidates, reverseGeocodeToPrefecture } from "../../lib/geocode"
 import { PREFECTURES } from "../../lib/prefectures"
@@ -145,8 +145,8 @@ export default function NewVolunteer() {
           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleGeocodeSearch())}
           style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
         />
-        <button type="button" onClick={handleGeocodeSearch} disabled={geocoding} style={searchBtnStyle}>
-          {geocoding ? "検索中..." : "🔍 検索"}
+        <button type="button" onClick={handleGeocodeSearch} disabled={geocoding} style={{ ...searchBtnStyle, display: "flex", alignItems: "center", gap: 4 }}>
+          {geocoding ? "検索中..." : <><Search size={14} /> 検索</>}
         </button>
       </div>
       {geocodeError && <p style={{ color: "red", fontSize: 12, marginBottom: 8 }}>{geocodeError}</p>}
@@ -158,19 +158,19 @@ export default function NewVolunteer() {
               key={i}
               type="button"
               onClick={() => selectCandidate(c)}
-              style={{ ...candidateItemStyle, borderBottom: i < candidates.length - 1 ? "1px solid #f9ede6" : "none" }}
+              style={{ ...candidateItemStyle, borderBottom: i < candidates.length - 1 ? "1px solid #f9ede6" : "none", display: "flex", alignItems: "center", gap: 4 }}
             >
-              📍 {c.displayName}
+              <MapPin size={13} /> {c.displayName}
             </button>
           ))}
         </div>
       )}
       {selectedPlace && (
-        <p style={{ fontSize: 12, color: "#43a047", marginBottom: 8 }}>✅ {selectedPlace}</p>
+        <p style={{ fontSize: 12, color: "#43a047", marginBottom: 8, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle2 size={13} /> {selectedPlace}</p>
       )}
 
       <p style={{ fontSize: 11, color: "#bbb", marginBottom: 12 }}>
-        場所を入力して「🔍 検索」を押すと候補が出るので、選ぶと下の地図が移動します
+        場所を入力して「検索」を押すと候補が出るので、選ぶと下の地図が移動します
       </p>
 
       <input
@@ -190,7 +190,7 @@ export default function NewVolunteer() {
         地図をタップして集合場所を指定（任意）
       </p>
       <div ref={mapRef} style={{ width: "100%", height: 240, borderRadius: 12, marginBottom: 8, border: "1px solid #f2c4a0" }} />
-      {lat && <p style={{ fontSize: 12, color: "#43a047", marginBottom: 12 }}>✅ 場所を選択済み ({parseFloat(lat).toFixed(4)}, {parseFloat(lng).toFixed(4)})</p>}
+      {lat && <p style={{ fontSize: 12, color: "#43a047", marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle2 size={13} /> 場所を選択済み ({parseFloat(lat).toFixed(4)}, {parseFloat(lng).toFixed(4)})</p>}
 
       <label style={{ display: "block", marginBottom: 4, color: "#9e7b6e", fontSize: 13 }}>
         都道府県（位置情報から自動入力。違う場合は選び直してください）

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Home } from "lucide-react"
+import { Home, Cat, MessageCircle } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { getOrCreateDmRoom } from "../../lib/chatRoom"
 import QrCodeButton from "../../components/QrCodeButton"
@@ -76,7 +76,7 @@ export default function AdoptionDetail() {
       <PageTitle icon={<Home size={20} color="#e07a5f" />} title={listing.name} />
 
       <div style={{ marginBottom: 12, textAlign: "right" }}>
-        <QrCodeButton label="📮 ポスター用QRコード" />
+        <QrCodeButton label="ポスター用QRコード" />
       </div>
 
       {listing.status === "成立" && (
@@ -110,14 +110,14 @@ export default function AdoptionDetail() {
         <Section title="里親募集の詳細">{listing.description}</Section>
       )}
       {listing.cat_id && (
-        <a href={`/cats/${listing.cat_id}`} style={{ display: "block", marginBottom: 16, color: "#e07a5f", fontSize: 13 }}>
-          🐱 登録済みの猫の詳細を見る →
+        <a href={`/cats/${listing.cat_id}`} style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 16, color: "#e07a5f", fontSize: 13 }}>
+          <Cat size={14} /> 登録済みの猫の詳細を見る →
         </a>
       )}
 
       {!isOwner && (
-        <button onClick={handleContact} disabled={contacting} style={buttonStyle}>
-          {contacting ? "準備中..." : "💬 コンタクトを取る"}
+        <button onClick={handleContact} disabled={contacting} style={{ ...buttonStyle, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          {contacting ? "準備中..." : <><MessageCircle size={16} /> コンタクトを取る</>}
         </button>
       )}
 

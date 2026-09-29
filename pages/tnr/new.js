@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { Scissors } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 export default function NewTNR() {
   const router = useRouter()
@@ -59,7 +61,9 @@ export default function NewTNR() {
 
   return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 24 }}>✂️ TNR記録を追加</h1>
+      <div style={{ marginBottom: 24 }}>
+        <PageTitle icon={<Scissors size={20} color="#e07a5f" />} title="TNR記録を追加" />
+      </div>
 
       <select value={catId} onChange={(e) => setCatId(e.target.value)} style={inputStyle}>
         <option value="">登録済みの猫から選択（任意）</option>

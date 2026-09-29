@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { supabase } from "../lib/supabase"
+import { CheckCircle2, User } from "lucide-react"
 
 export default function BulkRegister() {
   const [nickname, setNickname] = useState("")
@@ -55,7 +56,7 @@ export default function BulkRegister() {
         return
       }
 
-      setMessage(`✅ ${nickname}（${email}）を登録しました！`)
+      setMessage(`${nickname}（${email}）を登録しました！`)
       setNickname("")
       setName("")
       setEmail("")
@@ -70,14 +71,14 @@ export default function BulkRegister() {
 
   return (
     <div style={{ maxWidth: 480, padding: 16 }}>
-      <h2 style={{ marginBottom: 16, color: "#e07a5f" }}>👤 代行登録</h2>
+      <h2 style={{ marginBottom: 16, color: "#e07a5f", display: "flex", alignItems: "center", gap: 8 }}><User size={18} /> 代行登録</h2>
       <p style={{ fontSize: 13, color: "#9e7b6e", marginBottom: 16 }}>
         忙しい団体さんに代わって管理者が登録できます。
       </p>
 
       <select value={accountType} onChange={(e) => setAccountType(e.target.value)} style={inputStyle}>
-        <option value="activist">🙋 活動者</option>
-        <option value="organization">🏢 団体</option>
+        <option value="activist">活動者</option>
+        <option value="organization">団体</option>
       </select>
 
       <input placeholder="ニックネーム（必須）" value={nickname} onChange={(e) => setNickname(e.target.value)} style={inputStyle} />
@@ -92,7 +93,7 @@ export default function BulkRegister() {
       </p>
 
       {error && <p style={{ color: "red", marginBottom: 12 }}>{error}</p>}
-      {message && <p style={{ color: "#43a047", marginBottom: 12 }}>{message}</p>}
+      {message && <p style={{ color: "#43a047", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}><CheckCircle2 size={14} /> {message}</p>}
 
       <button onClick={handleRegister} disabled={loading} style={buttonStyle}>
         {loading ? "登録中..." : "代行登録する"}

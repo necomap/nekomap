@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { ClipboardList } from "lucide-react"
+import { ClipboardList, Search, Users, Cat, Building2, Flag } from "lucide-react"
 import AdBanner from "../../components/AdBanner"
 import RegionSelector from "../../components/RegionSelector"
 import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
@@ -11,11 +11,11 @@ import PageTitle from "../../components/PageTitle"
 
 const CATEGORIES = [
   { value: "all", label: "すべて" },
-  { value: "lost", label: "🔍 猫探し" },
-  { value: "sighting", label: "👀 目撃情報" },
-  { value: "rescue", label: "🏠 保護情報" },
-  { value: "tnr", label: "✂️ TNR" },
-  { value: "general", label: "💬 一般" },
+  { value: "lost", label: "猫探し" },
+  { value: "sighting", label: "目撃情報" },
+  { value: "rescue", label: "保護情報" },
+  { value: "tnr", label: "TNR" },
+  { value: "general", label: "一般" },
 ]
 
 export default function Board() {
@@ -116,12 +116,15 @@ export default function Board() {
 
       <RegionSelector region={region ?? ""} onChange={changeRegion} />
 
-      <input
-        placeholder="🔎 キーワードで検索"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{ ...inputStyle, marginBottom: 12 }}
-      />
+      <div style={{ position: "relative", marginBottom: 12 }}>
+        <Search size={16} color="#c4a090" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+        <input
+          placeholder="キーワードで検索"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ ...inputStyle, marginBottom: 0, paddingLeft: 36 }}
+        />
+      </div>
 
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 20 }}>
         {CATEGORIES.map((c) => (
@@ -140,8 +143,8 @@ export default function Board() {
         ))}
       </div>
 
-      <p style={{ fontSize: 12, color: "#bbb", marginBottom: 16, textAlign: "right" }}>
-        🙋 ボランティア募集の投稿・閲覧は
+      <p style={{ fontSize: 12, color: "#bbb", marginBottom: 16, textAlign: "right", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4 }}>
+        <Users size={12} /> ボランティア募集の投稿・閲覧は
         <span onClick={() => router.push("/volunteer")} style={{ color: "#e07a5f", cursor: "pointer", textDecoration: "underline" }}>
           専用ページ
         </span>
@@ -166,7 +169,7 @@ export default function Board() {
                 background: "#f0e6e0", color: "#e07a5f",
                 whiteSpace: "nowrap",
               }}>
-                {CATEGORIES.find((c) => c.value === post.category)?.label || "💬 一般"}
+                {CATEGORIES.find((c) => c.value === post.category)?.label || "一般"}
               </span>
               {user && (
                 <FavoriteButton
@@ -196,12 +199,12 @@ export default function Board() {
               }}>
                 {post.users?.avatar
                   ? <img src={post.users.avatar} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  : "🐱"}
+                  : <Cat size={13} color="#c4a090" />}
               </div>
               <span style={{ fontSize: 12, color: "#9e7b6e" }}>
                 {post.users?.nickname || "匿名"}
                 {post.users?.organization && (
-                  <span style={{ color: "#4a90e2" }}> ・ 🏢{post.users.organization}</span>
+                  <span style={{ color: "#4a90e2", display: "inline-flex", alignItems: "center", gap: 2 }}> ・ <Building2 size={11} />{post.users.organization}</span>
                 )}
               </span>
               <span style={{ fontSize: 12, color: "#bbb" }}>
@@ -214,10 +217,10 @@ export default function Board() {
                 padding: "4px 10px", background: "none",
                 border: "1px solid #eee", borderRadius: 20,
                 fontSize: 12, color: "#999", cursor: "pointer",
-                fontFamily: "inherit",
+                fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4,
               }}
             >
-              🚩 通報
+              <Flag size={12} /> 通報
             </button>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Mail } from "lucide-react"
+import { Mail, CheckCircle2 } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 
 const CATEGORIES = [
@@ -41,7 +41,7 @@ export default function Contact() {
   if (done) {
     return (
       <div style={{ maxWidth: 480, margin: "100px auto", padding: 24, textAlign: "center" }}>
-        <div style={{ fontSize: 64, marginBottom: 16 }}>✅</div>
+        <div style={{ display: "flex", justifyContent: "center", color: "#43a047", marginBottom: 16 }}><CheckCircle2 size={64} /></div>
         <h2 style={{ color: "#e07a5f", marginBottom: 16 }}>送信完了しました</h2>
         <p style={{ color: "#9e7b6e", fontSize: 14, lineHeight: 1.8 }}>
           お問い合わせありがとうございます。<br />
@@ -87,10 +87,10 @@ export default function Contact() {
               border: category === c ? "2px solid #e07a5f" : "2px solid #f2c4a0",
               background: category === c ? "#fff0e8" : "white",
               cursor: "pointer", fontSize: 14, textAlign: "left",
-              color: "#3d3230",
+              color: "#3d3230", display: "flex", alignItems: "center", gap: 6,
             }}
           >
-            {category === c ? "✅ " : ""}{c}
+            {category === c && <CheckCircle2 size={14} />}{c}
           </button>
         ))}
       </div>

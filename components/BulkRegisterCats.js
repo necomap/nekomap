@@ -120,7 +120,7 @@ export default function BulkRegisterCats() {
         <option value="">選択してください</option>
         {targets.map((t) => (
           <option key={t.id} value={t.id}>
-            {t.account_type === "organization" ? "🏢" : "🙋"} {t.organization || t.nickname}
+            {t.organization || t.nickname}
             {t.organization ? `（${t.nickname}）` : ""}
           </option>
         ))}

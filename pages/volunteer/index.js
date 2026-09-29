@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Users } from "lucide-react"
+import { Users, Building2, MapPin, Calendar, MessageCircle } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { getOrCreateDmRoom } from "../../lib/chatRoom"
 import RegionSelector from "../../components/RegionSelector"
@@ -80,7 +80,7 @@ export default function Volunteer() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
         <PageTitle icon={<Users size={20} color="#e07a5f" />} title="ボランティア募集" />
         <div style={{ display: "flex", gap: 8 }}>
-          <QrCodeButton label="📮 QRコード" />
+          <QrCodeButton label="QRコード" />
           <button onClick={() => router.push("/volunteer/new")} style={buttonStyle}>
             ＋ 募集する
           </button>
@@ -109,21 +109,21 @@ export default function Volunteer() {
             )}
           </div>
           {(req.users?.nickname || req.users?.organization) && (
-            <p style={{ margin: "0 0 8px", fontSize: 13, color: "#9e7b6e" }}>
-              🙋 {req.users?.nickname || "匿名"}
+            <p style={{ margin: "0 0 8px", fontSize: 13, color: "#9e7b6e", display: "flex", alignItems: "center", gap: 4 }}>
+              <Users size={12} /> {req.users?.nickname || "匿名"}
               {req.users?.organization && (
-                <span style={{ color: "#4a90e2" }}> ・ 🏢{req.users.organization}</span>
+                <span style={{ color: "#4a90e2", display: "inline-flex", alignItems: "center", gap: 2 }}> ・ <Building2 size={11} />{req.users.organization}</span>
               )}
             </p>
           )}
           {req.location && (
-            <p style={{ margin: "0 0 4px", fontSize: 14, color: "#666" }}>
-              📍 {req.location}
+            <p style={{ margin: "0 0 4px", fontSize: 14, color: "#666", display: "flex", alignItems: "center", gap: 4 }}>
+              <MapPin size={13} /> {req.location}
             </p>
           )}
           {req.date && (
-            <p style={{ margin: "0 0 4px", fontSize: 14, color: "#666" }}>
-              📅 {new Date(req.date).toLocaleString("ja-JP")}
+            <p style={{ margin: "0 0 4px", fontSize: 14, color: "#666", display: "flex", alignItems: "center", gap: 4 }}>
+              <Calendar size={13} /> {new Date(req.date).toLocaleString("ja-JP")}
             </p>
           )}
           {req.description && (
@@ -136,9 +136,9 @@ export default function Volunteer() {
               href={`https://www.google.com/maps?q=${req.lat},${req.lng}`}
               target="_blank"
               rel="noopener noreferrer"
-              style={mapLinkStyle}
+              style={{ ...mapLinkStyle, display: "inline-flex", alignItems: "center", gap: 4 }}
             >
-              📍 地図で場所を確認する
+              <MapPin size={13} /> 地図で場所を確認する
             </a>
           )}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -146,8 +146,8 @@ export default function Volunteer() {
               {new Date(req.created_at).toLocaleDateString("ja-JP")}
             </p>
             {req.created_by && user?.id !== req.created_by && (
-              <button onClick={() => handleApply(req)} disabled={applyingId === req.id} style={applyButton}>
-                {applyingId === req.id ? "準備中..." : "💬 応募する・コンタクトを取る"}
+              <button onClick={() => handleApply(req)} disabled={applyingId === req.id} style={{ ...applyButton, display: "flex", alignItems: "center", gap: 6 }}>
+                {applyingId === req.id ? "準備中..." : <><MessageCircle size={14} /> 応募する・コンタクトを取る</>}
               </button>
             )}
           </div>

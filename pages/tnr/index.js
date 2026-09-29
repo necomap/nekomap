@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Scissors } from "lucide-react"
+import { Scissors, CheckCircle2, Cat, Calendar, Hospital, Building2, Leaf } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 
 export default function TNRCalendar() {
@@ -130,21 +130,21 @@ export default function TNRCalendar() {
         <div key={s.id} style={{ ...cardStyle, opacity: s.done ? 0.6 : 1 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div style={{ flex: 1 }}>
-              <p style={{ margin: "0 0 8px", fontWeight: 600, fontSize: 15 }}>
-                {s.done ? "✅" : "🐱"} {s.cat_name}
+              <p style={{ margin: "0 0 8px", fontWeight: 600, fontSize: 15, display: "flex", alignItems: "center", gap: 6 }}>
+                {s.done ? <CheckCircle2 size={14} /> : <Cat size={14} />} {s.cat_name}
               </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 }}>
                 {s.capture_date && (
-                  <span style={tagStyle("#e07a5f")}>📅 捕獲: {s.capture_date}</span>
+                  <span style={{ ...tagStyle("#e07a5f"), display: "inline-flex", alignItems: "center", gap: 4 }}><Calendar size={11} /> 捕獲: {s.capture_date}</span>
                 )}
                 {s.surgery_date && (
-                  <span style={tagStyle("#7b61ff")}>🏥 手術: {s.surgery_date}</span>
+                  <span style={{ ...tagStyle("#7b61ff"), display: "inline-flex", alignItems: "center", gap: 4 }}><Hospital size={11} /> 手術: {s.surgery_date}</span>
                 )}
                 {s.hospital && (
-                  <span style={tagStyle("#888")}>🏨 {s.hospital}</span>
+                  <span style={{ ...tagStyle("#888"), display: "inline-flex", alignItems: "center", gap: 4 }}><Building2 size={11} /> {s.hospital}</span>
                 )}
                 {s.release_date && (
-                  <span style={tagStyle("#43a047")}>🌿 放猫: {s.release_date}</span>
+                  <span style={{ ...tagStyle("#43a047"), display: "inline-flex", alignItems: "center", gap: 4 }}><Leaf size={11} /> 放猫: {s.release_date}</span>
                 )}
               </div>
               {s.organization && (

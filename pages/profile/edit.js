@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Settings, Trophy } from "lucide-react"
+import { Settings, Trophy, MapPin, Heart, Bell, MessageCircle, Feather, Users, Mail } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { POINTS, getBadge } from "../../lib/badges"
 import { PREFECTURES } from "../../lib/prefectures"
@@ -137,7 +137,7 @@ export default function EditProfile() {
       <input placeholder="https://" value={profile.website || ""} onChange={(e) => setProfile({ ...profile, website: e.target.value })} style={inputStyle} />
 
       <hr style={{ margin: "20px 0", border: "none", borderTop: "1px solid #f2c4a0" }} />
-      <h3 style={{ marginBottom: 16, color: "#e07a5f" }}>📍 表示地域</h3>
+      <h3 style={{ marginBottom: 16, color: "#e07a5f", display: "flex", alignItems: "center", gap: 6 }}><MapPin size={16} /> 表示地域</h3>
       <p style={{ fontSize: 13, color: "#9e7b6e", marginBottom: 12, lineHeight: 1.6 }}>
         設定すると、困りごと・里親募集・ボランティア募集などの一覧がデフォルトでこの地域のみ表示されます。
         未設定の場合は全国の情報が表示されます（各画面で一時的に地域を変更することもできます）。
@@ -148,14 +148,14 @@ export default function EditProfile() {
         onChange={(e) => setProfile({ ...profile, default_prefecture: e.target.value })}
         style={inputStyle}
       >
-        <option value="">🌏 全国（絞り込みなし）</option>
+        <option value="">全国（絞り込みなし）</option>
         {PREFECTURES.map((p) => (
           <option key={p} value={p}>{p}</option>
         ))}
       </select>
 
       <hr style={{ margin: "20px 0", border: "none", borderTop: "1px solid #f2c4a0" }} />
-      <h3 style={{ marginBottom: 16, color: "#e07a5f" }}>💝 寄付情報（任意）</h3>
+      <h3 style={{ marginBottom: 16, color: "#e07a5f", display: "flex", alignItems: "center", gap: 6 }}><Heart size={16} /> 寄付情報（任意）</h3>
 
       <label style={labelStyle}>寄付についての説明</label>
       <textarea
@@ -182,7 +182,7 @@ export default function EditProfile() {
       />
 
       <hr style={{ margin: "20px 0", border: "none", borderTop: "1px solid #f2c4a0" }} />
-      <h3 style={{ marginBottom: 16, color: "#e07a5f" }}>🔔 通知設定</h3>
+      <h3 style={{ marginBottom: 16, color: "#e07a5f", display: "flex", alignItems: "center", gap: 6 }}><Bell size={16} /> 通知設定</h3>
 
       <label style={checkboxRowStyle}>
         <input
@@ -193,7 +193,7 @@ export default function EditProfile() {
             notification_preferences: { ...profile.notification_preferences, chat: e.target.checked },
           })}
         />
-        💬 チャットの新着メッセージ
+        <MessageCircle size={14} /> チャットの新着メッセージ
       </label>
       <label style={checkboxRowStyle}>
         <input
@@ -204,7 +204,7 @@ export default function EditProfile() {
             notification_preferences: { ...profile.notification_preferences, memorial_report: e.target.checked },
           })}
         />
-        🕊️ 自分の猫への訃報報告
+        <Feather size={14} /> 自分の猫への訃報報告
       </label>
       <label style={checkboxRowStyle}>
         <input
@@ -215,7 +215,7 @@ export default function EditProfile() {
             notification_preferences: { ...profile.notification_preferences, trouble_response: e.target.checked },
           })}
         />
-        🙋 困りごと投稿への対応
+        <Users size={14} /> 困りごと投稿への対応
       </label>
       <label style={checkboxRowStyle}>
         <input
@@ -226,7 +226,7 @@ export default function EditProfile() {
             notification_preferences: { ...profile.notification_preferences, area_new_post: e.target.checked },
           })}
         />
-        📍 エリア新着通知（デフォルト地域に新しい困りごと・里親募集・ボランティア募集が投稿されたとき）
+        <MapPin size={14} /> エリア新着通知（デフォルト地域に新しい困りごと・里親募集・ボランティア募集が投稿されたとき）
       </label>
       <label style={checkboxRowStyle}>
         <input
@@ -237,10 +237,10 @@ export default function EditProfile() {
             notification_preferences: { ...profile.notification_preferences, weekly_digest: e.target.checked },
           })}
         />
-        📬 週次ダイジェストメール（デフォルト地域の新着を週1回まとめて。メール通知ONが必要）
+        <Mail size={14} /> 週次ダイジェストメール（デフォルト地域の新着を週1回まとめて。メール通知ONが必要）
       </label>
       <p style={{ fontSize: 12, color: "#9e7b6e", marginBottom: 16, lineHeight: 1.6 }}>
-        ※ エリア新着通知・週次ダイジェストメールは、上の「📍 表示地域」でデフォルト地域を設定していないと届きません。
+        ※ エリア新着通知・週次ダイジェストメールは、上の「表示地域」でデフォルト地域を設定していないと届きません。
       </p>
 
       <label style={{ ...checkboxRowStyle, marginTop: 12 }}>
@@ -249,7 +249,7 @@ export default function EditProfile() {
           checked={!!profile.email_notifications_enabled}
           onChange={(e) => setProfile({ ...profile, email_notifications_enabled: e.target.checked })}
         />
-        📧 メールでも通知を受け取る
+        <Mail size={14} /> メールでも通知を受け取る
       </label>
       <p style={{ fontSize: 12, color: "#9e7b6e", marginBottom: 16, lineHeight: 1.6 }}>
         ※ プッシュ通知はブラウザ・アプリ（右上のベルアイコン）で個別に許可が必要です。

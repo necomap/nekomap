@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
-import { Trophy } from "lucide-react"
+import { Trophy, Scissors, Eye, ClipboardList, Home, CheckCircle2, Users } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { POINTS, getBadge, getPeriodCutoff } from "../../lib/badges"
 
@@ -140,7 +140,7 @@ export default function Ranking() {
   function RankingCard({ title, icon, items }) {
     return (
       <div style={cardStyle}>
-        <h2 style={{ margin: "0 0 16px", fontSize: 17, color: "#e07a5f" }}>
+        <h2 style={{ margin: "0 0 16px", fontSize: 17, color: "#e07a5f", display: "flex", alignItems: "center", gap: 8 }}>
           {icon} {title}
         </h2>
         {items.length === 0 && (
@@ -186,8 +186,8 @@ export default function Ranking() {
       {loading && <p style={{ textAlign: "center", color: "#999" }}>読み込み中...</p>}
 
       <div style={{ ...cardStyle, background: "linear-gradient(135deg, #fff9f5, #fff0e8)" }}>
-        <h2 style={{ margin: "0 0 4px", fontSize: 18, color: "#e07a5f" }}>
-          🏆 総合貢献度ランキング
+        <h2 style={{ margin: "0 0 4px", fontSize: 18, color: "#e07a5f", display: "flex", alignItems: "center", gap: 8 }}>
+          <Trophy size={18} /> 総合貢献度ランキング
         </h2>
         <p style={{ margin: "0 0 16px", fontSize: 12, color: "#9e7b6e" }}>
           目撃投稿・掲示板投稿・保護報告・困りごと解決・ボランティア応募を合算したスコアです
@@ -210,12 +210,12 @@ export default function Ranking() {
         ))}
       </div>
 
-      <RankingCard title="TNR達成数ランキング" icon="✂️" items={categoryRankings.tnr} />
-      <RankingCard title="目撃情報投稿数ランキング" icon="👀" items={categoryRankings.sighting} />
-      <RankingCard title="掲示板投稿数ランキング" icon="📋" items={categoryRankings.post} />
-      <RankingCard title="保護・救助報告数ランキング" icon="🏠" items={categoryRankings.rescue} />
-      <RankingCard title="困りごと解決数ランキング" icon="✅" items={categoryRankings.resolved} />
-      <RankingCard title="ボランティア応募数ランキング" icon="🙋" items={categoryRankings.volunteerApp} />
+      <RankingCard title="TNR達成数ランキング" icon={<Scissors size={16} />} items={categoryRankings.tnr} />
+      <RankingCard title="目撃情報投稿数ランキング" icon={<Eye size={16} />} items={categoryRankings.sighting} />
+      <RankingCard title="掲示板投稿数ランキング" icon={<ClipboardList size={16} />} items={categoryRankings.post} />
+      <RankingCard title="保護・救助報告数ランキング" icon={<Home size={16} />} items={categoryRankings.rescue} />
+      <RankingCard title="困りごと解決数ランキング" icon={<CheckCircle2 size={16} />} items={categoryRankings.resolved} />
+      <RankingCard title="ボランティア応募数ランキング" icon={<Users size={16} />} items={categoryRankings.volunteerApp} />
     </div>
   )
 }

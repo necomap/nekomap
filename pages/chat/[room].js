@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Send, Camera } from "lucide-react"
+import { Send, Camera, MessageCircle, Building2, Paperclip } from "lucide-react"
 import { compressImage } from "../../lib/compressImage"
 
 export default function ChatRoom() {
@@ -121,7 +121,7 @@ export default function ChatRoom() {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${accessToken}`,
           },
-          body: JSON.stringify({ type: "chat", roomId: room, preview: sentText || "📷 画像を送信しました" }),
+          body: JSON.stringify({ type: "chat", roomId: room, preview: sentText || "画像を送信しました" }),
         }).catch(() => {})
       }
     } catch (e) {
@@ -162,11 +162,11 @@ export default function ChatRoom() {
           ←
         </button>
         <div>
-          <h2 style={{ margin: 0, fontSize: 18, color: "#3d3230" }}>
-            💬 {otherUser?.nickname || "チャット"}
+          <h2 style={{ margin: 0, fontSize: 18, color: "#3d3230", display: "flex", alignItems: "center", gap: 6 }}>
+            <MessageCircle size={17} /> {otherUser?.nickname || "チャット"}
           </h2>
           {otherUser?.organization && (
-            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#4a90e2" }}>🏢 {otherUser.organization}</p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#4a90e2", display: "flex", alignItems: "center", gap: 4 }}><Building2 size={11} /> {otherUser.organization}</p>
           )}
         </div>
       </div>
@@ -220,7 +220,7 @@ export default function ChatRoom() {
           />
         </label>
         {photo && (
-          <span style={{ fontSize: 12, color: "#e07a5f" }}>📎 {photo.name}</span>
+          <span style={{ fontSize: 12, color: "#e07a5f", display: "inline-flex", alignItems: "center", gap: 4 }}><Paperclip size={12} /> {photo.name}</span>
         )}
         <input
           placeholder="メッセージを入力"

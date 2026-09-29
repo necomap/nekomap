@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
-import { Heart } from "lucide-react"
+import { Heart, Cat, CheckCircle2, Globe, Landmark, Package } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 
 export default function Donate() {
@@ -37,9 +37,9 @@ export default function Donate() {
             <div style={{
               width: 48, height: 48, borderRadius: "50%",
               background: "#f0e6e0", display: "flex",
-              alignItems: "center", justifyContent: "center", fontSize: 24,
+              alignItems: "center", justifyContent: "center",
             }}>
-              🐱
+              <Cat size={22} color="#c4a090" />
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: 16 }}>
@@ -49,8 +49,9 @@ export default function Donate() {
                 <span style={{
                   fontSize: 11, padding: "2px 8px", borderRadius: 10,
                   background: "#e8f5e9", color: "#2e7d32",
+                  display: "inline-flex", alignItems: "center", gap: 4,
                 }}>
-                  ✅ 認証済み団体
+                  <CheckCircle2 size={11} /> 認証済み団体
                 </span>
               )}
             </div>
@@ -64,21 +65,21 @@ export default function Donate() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {org.website && (
-              <a href={org.website} target="_blank" rel="noopener noreferrer" style={linkOrange}>
-                🌐 ホームページ・寄付ページへ
+              <a href={org.website} target="_blank" rel="noopener noreferrer" style={{ ...linkOrange, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <Globe size={14} /> ホームページ・寄付ページへ
               </a>
             )}
             {org.donation_bank && (
               <div style={infoBox}>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, marginBottom: 4 }}>🏦 銀行振込</p>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}><Landmark size={13} /> 銀行振込</p>
                 <p style={{ margin: 0, fontSize: 13, color: "#444", whiteSpace: "pre-wrap" }}>
                   {org.donation_bank}
                 </p>
               </div>
             )}
             {org.donation_amazon && (
-              <a href={org.donation_amazon} target="_blank" rel="noopener noreferrer" style={linkAmber}>
-                📦 Amazonほしいものリスト
+              <a href={org.donation_amazon} target="_blank" rel="noopener noreferrer" style={{ ...linkAmber, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <Package size={14} /> Amazonほしいものリスト
               </a>
             )}
           </div>

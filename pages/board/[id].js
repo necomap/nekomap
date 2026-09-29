@@ -3,14 +3,15 @@ import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { getOrCreateDmRoom } from "../../lib/chatRoom"
 import QrCodeButton from "../../components/QrCodeButton"
+import { Cat, Building2, MessageCircle, Flag } from "lucide-react"
 
 const CATEGORIES = [
   { value: "all", label: "すべて" },
-  { value: "lost", label: "🔍 猫探し" },
-  { value: "sighting", label: "👀 目撃情報" },
-  { value: "rescue", label: "🏠 保護情報" },
-  { value: "tnr", label: "✂️ TNR" },
-  { value: "general", label: "💬 一般" },
+  { value: "lost", label: "猫探し" },
+  { value: "sighting", label: "目撃情報" },
+  { value: "rescue", label: "保護情報" },
+  { value: "tnr", label: "TNR" },
+  { value: "general", label: "一般" },
 ]
 
 export default function BoardDetail() {
@@ -106,11 +107,11 @@ export default function BoardDetail() {
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <button onClick={() => router.push("/board")} style={backBtn}>← 掲示板に戻る</button>
-        <QrCodeButton label="📮 QRコード" />
+        <QrCodeButton label="QRコード" />
       </div>
 
       <span style={badgeStyle}>
-        {CATEGORIES.find((c) => c.value === post.category)?.label || "💬 一般"}
+        {CATEGORIES.find((c) => c.value === post.category)?.label || "一般"}
       </span>
       <h1 style={{ margin: "8px 0 4px", fontSize: 22, color: "#3d3230" }}>{post.title}</h1>
 
@@ -123,12 +124,12 @@ export default function BoardDetail() {
         }}>
           {post.users?.avatar
             ? <img src={post.users.avatar} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            : "🐱"}
+            : <Cat size={14} color="#c4a090" />}
         </div>
         <span style={{ fontSize: 13, color: "#9e7b6e" }}>
           {post.users?.nickname || "匿名"}
           {post.users?.organization && (
-            <span style={{ color: "#4a90e2" }}> ・ 🏢{post.users.organization}</span>
+            <span style={{ color: "#4a90e2", display: "inline-flex", alignItems: "center", gap: 2 }}> ・ <Building2 size={12} />{post.users.organization}</span>
           )}
         </span>
         <span style={{ fontSize: 12, color: "#bbb" }}>
@@ -146,11 +147,11 @@ export default function BoardDetail() {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
         {post.created_by && user?.id !== post.created_by ? (
-          <button onClick={handleContact} disabled={contacting} style={contactBtn}>
-            {contacting ? "準備中..." : "💬 投稿者にコンタクトを取る"}
+          <button onClick={handleContact} disabled={contacting} style={{ ...contactBtn, display: "flex", alignItems: "center", gap: 6 }}>
+            {contacting ? "準備中..." : <><MessageCircle size={14} /> 投稿者にコンタクトを取る</>}
           </button>
         ) : <span />}
-        <button onClick={handleReport} style={smallReportBtn}>🚩 通報</button>
+        <button onClick={handleReport} style={{ ...smallReportBtn, display: "flex", alignItems: "center", gap: 4 }}><Flag size={12} /> 通報</button>
       </div>
     </div>
   )

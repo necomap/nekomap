@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Map } from "lucide-react"
+import { Map, Cat } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 
 export default function Territories() {
@@ -58,14 +58,15 @@ export default function Territories() {
         <div key={t.id} style={cardStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div style={{ flex: 1 }}>
-              <p style={{ margin: "0 0 8px", fontWeight: 500 }}>
-                🗺️ ナワバリ #{i + 1}
+              <p style={{ margin: "0 0 8px", fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+                <Map size={14} /> ナワバリ #{i + 1}
                 {t.cats?.name && (
                   <span style={{
                     marginLeft: 8, fontSize: 12, padding: "2px 8px",
                     background: "#fff0e8", color: "#e07a5f", borderRadius: 10,
+                    display: "inline-flex", alignItems: "center", gap: 4,
                   }}>
-                    🐱 {t.cats.name}
+                    <Cat size={11} /> {t.cats.name}
                   </span>
                 )}
               </p>

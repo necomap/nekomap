@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Cat } from "lucide-react"
+import { Cat, Search, Feather } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 
 export default function CatList() {
@@ -37,19 +37,22 @@ export default function CatList() {
         </button>
       </div>
 
-      <input
-        placeholder="🔎 名前・特徴で検索"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{ ...inputStyle, marginBottom: 20 }}
-      />
+      <div style={{ position: "relative", marginBottom: 20 }}>
+        <Search size={16} color="#c4a090" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+        <input
+          placeholder="名前・特徴で検索"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ ...inputStyle, marginBottom: 0, paddingLeft: 36 }}
+        />
+      </div>
 
       {filtered.length === 0 && (
         <p style={{ color: "#999", textAlign: "center" }}>まだ登録された猫がいません</p>
       )}
 
       <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <a href="/memorial" style={memorialLinkStyle}>🕊️ 訃報ページを見る</a>
+        <a href="/memorial" style={{ ...memorialLinkStyle, display: "inline-flex", alignItems: "center", gap: 4 }}><Feather size={13} /> 訃報ページを見る</a>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
@@ -66,8 +69,8 @@ export default function CatList() {
                 style={{ width: "100%", height: 160, objectFit: "cover", borderRadius: 10, marginBottom: 8 }}
               />
             ) : (
-              <div style={{ width: "100%", height: 160, background: "#f0e6e0", borderRadius: 10, marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>
-                🐱
+              <div style={{ width: "100%", height: 160, background: "#f0e6e0", borderRadius: 10, marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Cat size={40} color="#c4a090" />
               </div>
             )}
             <h3 style={{ margin: "0 0 4px", fontSize: 15 }}>{cat.name}</h3>

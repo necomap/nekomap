@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Cat } from "lucide-react"
+import { Cat, Search, MapPin, CheckCircle2, Scissors } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import CatMatchSuggestions from "../../components/CatMatchSuggestions"
 import { searchAddressCandidates } from "../../lib/geocode"
@@ -178,8 +178,8 @@ export default function NewStray() {
           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleGeocodeSearch())}
           style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
         />
-        <button type="button" onClick={handleGeocodeSearch} disabled={geocoding} style={searchBtnStyle}>
-          {geocoding ? "検索中..." : "🔍 検索"}
+        <button type="button" onClick={handleGeocodeSearch} disabled={geocoding} style={{ ...searchBtnStyle, display: "flex", alignItems: "center", gap: 4 }}>
+          {geocoding ? "検索中..." : <><Search size={14} /> 検索</>}
         </button>
       </div>
       {geocodeError && <p style={{ color: "red", fontSize: 12, marginBottom: 8 }}>{geocodeError}</p>}
@@ -190,16 +190,16 @@ export default function NewStray() {
               key={i}
               type="button"
               onClick={() => selectCandidate(c)}
-              style={{ ...candidateItemStyle, borderBottom: i < candidates.length - 1 ? "1px solid #f9ede6" : "none" }}
+              style={{ ...candidateItemStyle, borderBottom: i < candidates.length - 1 ? "1px solid #f9ede6" : "none", display: "flex", alignItems: "center", gap: 4 }}
             >
-              📍 {c.displayName}
+              <MapPin size={13} /> {c.displayName}
             </button>
           ))}
         </div>
       )}
-      {selectedPlace && <p style={{ fontSize: 12, color: "#43a047", marginBottom: 8 }}>✅ {selectedPlace}</p>}
+      {selectedPlace && <p style={{ fontSize: 12, color: "#43a047", marginBottom: 8, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle2 size={13} /> {selectedPlace}</p>}
       <div ref={mapRef} style={{ width: "100%", height: 240, borderRadius: 12, marginBottom: 12, border: "1px solid #f2c4a0" }} />
-      {lat && <p style={{ fontSize: 12, color: "#43a047", marginBottom: 12 }}>✅ 場所を選択済み</p>}
+      {lat && <p style={{ fontSize: 12, color: "#43a047", marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle2 size={13} /> 場所を選択済み</p>}
 
       <label style={{
         display: "flex", alignItems: "center", gap: 10,
@@ -214,7 +214,7 @@ export default function NewStray() {
           style={{ width: 18, height: 18 }}
         />
         <div>
-          <p style={{ margin: 0, fontWeight: 500 }}>✂️ TNR予定あり</p>
+          <p style={{ margin: 0, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}><Scissors size={14} /> TNR予定あり</p>
           <p style={{ margin: 0, fontSize: 12, color: "#9e7b6e" }}>チェックすると団体名が表示されます</p>
         </div>
       </label>

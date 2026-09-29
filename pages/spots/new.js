@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { MapPin } from "lucide-react"
+import { MapPin, AlertTriangle, Search, CheckCircle2 } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { searchAddressCandidates } from "../../lib/geocode"
 import "leaflet/dist/leaflet.css"
 
 const TYPES = [
-  { value: "toilet", label: "🚽 トイレ" },
-  { value: "house", label: "🏠 猫ハウス" },
-  { value: "food", label: "🍚 フード場所" },
+  { value: "toilet", label: "トイレ" },
+  { value: "house", label: "猫ハウス" },
+  { value: "food", label: "フード場所" },
 ]
 
 export default function NewSpot() {
@@ -108,7 +108,7 @@ export default function NewSpot() {
     if (!lat) { setError("地図をタップして場所を選択してください"); return }
 
     if (type === "food") {
-      const ok = confirm("⚠️ フード場所の登録について\n\n悪意のある人物による毒餌被害を防ぐため、正確な位置は登録者と認証済み団体のみに表示されます。\n\n登録を続けますか？")
+      const ok = confirm("フード場所の登録について\n\n悪意のある人物による毒餌被害を防ぐため、正確な位置は登録者と認証済み団体のみに表示されます。\n\n登録を続けますか？")
       if (!ok) return
     }
 
@@ -147,8 +147,8 @@ export default function NewSpot() {
       </div>
 
       {type === "food" && (
-        <div style={{ padding: 12, background: "#fff3e0", borderRadius: 10, marginBottom: 12, fontSize: 13, color: "#e65100" }}>
-          ⚠️ フード場所は毒餌被害防止のため、正確な位置は認証済み団体のみに表示されます
+        <div style={{ padding: 12, background: "#fff3e0", borderRadius: 10, marginBottom: 12, fontSize: 13, color: "#e65100", display: "flex", alignItems: "center", gap: 6 }}>
+          <AlertTriangle size={15} /> フード場所は毒餌被害防止のため、正確な位置は認証済み団体のみに表示されます
         </div>
       )}
 
@@ -170,8 +170,8 @@ export default function NewSpot() {
           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleGeocodeSearch())}
           style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
         />
-        <button type="button" onClick={handleGeocodeSearch} disabled={geocoding} style={searchBtnStyle}>
-          {geocoding ? "検索中..." : "🔍 検索"}
+        <button type="button" onClick={handleGeocodeSearch} disabled={geocoding} style={{ ...searchBtnStyle, display: "flex", alignItems: "center", gap: 4 }}>
+          {geocoding ? "検索中..." : <><Search size={14} /> 検索</>}
         </button>
       </div>
       {geocodeError && <p style={{ color: "red", fontSize: 12, marginBottom: 8 }}>{geocodeError}</p>}
@@ -182,16 +182,16 @@ export default function NewSpot() {
               key={i}
               type="button"
               onClick={() => selectCandidate(c)}
-              style={{ ...candidateItemStyle, borderBottom: i < candidates.length - 1 ? "1px solid #f9ede6" : "none" }}
+              style={{ ...candidateItemStyle, borderBottom: i < candidates.length - 1 ? "1px solid #f9ede6" : "none", display: "flex", alignItems: "center", gap: 4 }}
             >
-              📍 {c.displayName}
+              <MapPin size={13} /> {c.displayName}
             </button>
           ))}
         </div>
       )}
-      {selectedPlace && <p style={{ fontSize: 12, color: "#43a047", marginBottom: 8 }}>✅ {selectedPlace}</p>}
+      {selectedPlace && <p style={{ fontSize: 12, color: "#43a047", marginBottom: 8, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle2 size={13} /> {selectedPlace}</p>}
       <div ref={mapRef} style={{ width: "100%", height: 240, borderRadius: 12, marginBottom: 12, border: "1px solid #f2c4a0" }} />
-      {lat && <p style={{ fontSize: 12, color: "#43a047", marginBottom: 12 }}>✅ 場所を選択済み</p>}
+      {lat && <p style={{ fontSize: 12, color: "#43a047", marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle2 size={13} /> 場所を選択済み</p>}
 
       {error && <p style={{ color: "red", marginBottom: 12 }}>{error}</p>}
 

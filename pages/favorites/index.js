@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Star } from "lucide-react"
+import { Star, AlertTriangle, Home, Users, ClipboardList, MapPin } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import FavoriteButton from "../../components/FavoriteButton"
 import { FAVORITABLE_TABLES } from "../../lib/favorites"
 
 const TYPE_LABELS = {
-  feces: "💩 糞尿被害", fight: "🐾 けんか多発", injury: "🩹 怪我・病気", other: "❓ その他",
+  feces: "糞尿被害", fight: "けんか多発", injury: "怪我・病気", other: "その他",
 }
 
 // お気に入り一覧ページ。favoritesテーブルに登録された投稿を、
@@ -66,13 +66,13 @@ export default function Favorites() {
 
       {total === 0 && (
         <p style={{ color: "#999", textAlign: "center", marginTop: 24 }}>
-          お気に入りはまだありません。各一覧のカードにある⭐ボタンから追加できます。
+          お気に入りはまだありません。各一覧のカードにあるお気に入りボタンから追加できます。
         </p>
       )}
 
       {items.trouble_reports.length > 0 && (
         <>
-          <h3 style={sectionTitle}>⚠️ 困りごと</h3>
+          <h3 style={{ ...sectionTitle, display: "flex", alignItems: "center", gap: 6 }}><AlertTriangle size={15} /> 困りごと</h3>
           {items.trouble_reports.map((r) => (
             <div key={r.id} style={cardStyle} onClick={() => router.push("/reports")}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -88,7 +88,7 @@ export default function Favorites() {
 
       {items.adoptions.length > 0 && (
         <>
-          <h3 style={sectionTitle}>🏠 里親募集</h3>
+          <h3 style={{ ...sectionTitle, display: "flex", alignItems: "center", gap: 6 }}><Home size={15} /> 里親募集</h3>
           {items.adoptions.map((a) => (
             <div key={a.id} style={cardStyle} onClick={() => router.push(`/adoption/${a.id}`)}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -106,7 +106,7 @@ export default function Favorites() {
 
       {items.volunteer_requests.length > 0 && (
         <>
-          <h3 style={sectionTitle}>🙋 ボランティア募集</h3>
+          <h3 style={{ ...sectionTitle, display: "flex", alignItems: "center", gap: 6 }}><Users size={15} /> ボランティア募集</h3>
           {items.volunteer_requests.map((v) => (
             <div key={v.id} style={cardStyle} onClick={() => router.push("/volunteer")}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -114,7 +114,7 @@ export default function Favorites() {
                 <FavoriteButton userId={user.id} targetTable="volunteer_requests" targetId={v.id} favorited={true}
                   onChange={(next) => handleUnfavorite("volunteer_requests", v.id, next)} size={16} />
               </div>
-              {v.location && <p style={{ margin: "6px 0 0", fontSize: 13, color: "#666" }}>📍 {v.location}</p>}
+              {v.location && <p style={{ margin: "6px 0 0", fontSize: 13, color: "#666", display: "flex", alignItems: "center", gap: 4 }}><MapPin size={12} /> {v.location}</p>}
             </div>
           ))}
         </>
@@ -122,7 +122,7 @@ export default function Favorites() {
 
       {items.posts.length > 0 && (
         <>
-          <h3 style={sectionTitle}>📋 掲示板</h3>
+          <h3 style={{ ...sectionTitle, display: "flex", alignItems: "center", gap: 6 }}><ClipboardList size={15} /> 掲示板</h3>
           {items.posts.map((p) => (
             <div key={p.id} style={cardStyle} onClick={() => router.push(`/board/${p.id}`)}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>

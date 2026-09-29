@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Home, Plus } from "lucide-react"
+import { Home, Plus, Cat, MessageCircle } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { getOrCreateDmRoom } from "../../lib/chatRoom"
 import RegionSelector from "../../components/RegionSelector"
@@ -137,7 +137,7 @@ export default function AdoptionList() {
               background: "#f0e6e0", display: "flex", alignItems: "center",
               justifyContent: "center", overflow: "hidden", fontSize: 28,
             }}>
-              {l.photo ? <img src={l.photo} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "🐱"}
+              {l.photo ? <img src={l.photo} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <Cat size={26} color="#c4a090" />}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -172,9 +172,9 @@ export default function AdoptionList() {
           <button
             onClick={(e) => { e.stopPropagation(); handleContact(l) }}
             disabled={contactingId === l.id || user?.id === l.created_by}
-            style={{ ...contactBtn, opacity: user?.id === l.created_by ? 0.5 : 1 }}
+            style={{ ...contactBtn, opacity: user?.id === l.created_by ? 0.5 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
           >
-            {user?.id === l.created_by ? "自分の投稿です" : contactingId === l.id ? "準備中..." : "💬 コンタクトを取る"}
+            {user?.id === l.created_by ? "自分の投稿です" : contactingId === l.id ? "準備中..." : <><MessageCircle size={14} /> コンタクトを取る</>}
           </button>
         </div>
       ))}

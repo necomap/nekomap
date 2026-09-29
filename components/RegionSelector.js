@@ -13,7 +13,7 @@ export default function RegionSelector({ region, onChange }) {
         onChange={(e) => onChange(e.target.value)}
         style={selectStyle}
       >
-        <option value="">🌏 全国</option>
+        <option value="">全国</option>
         {REGIONS.map((r) => (
           <optgroup key={r.region} label={r.region}>
             {r.prefectures.map((p) => (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Settings } from "lucide-react"
+import { Settings, Brain, Cat, MapPin, Flag, CheckCircle2, Building2, Users, User, Ban, Shield } from "lucide-react"
 import BulkRegister from "../../components/BulkRegister"
 import BulkRegisterCats from "../../components/BulkRegisterCats"
 import PageTitle from "../../components/PageTitle"
@@ -214,7 +214,7 @@ export default function Admin() {
 
       {tab === "faceai" && (
         <div style={cardStyle}>
-          <p style={{ margin: "0 0 8px", fontWeight: 500 }}>🧠 猫顔AI識別 - 特徴データの再計算</p>
+          <p style={{ margin: "0 0 8px", fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}><Brain size={16} /> 猫顔AI識別 - 特徴データの再計算</p>
           <p style={{ margin: "0 0 12px", fontSize: 13, color: "#666", lineHeight: 1.6 }}>
             目撃情報・野良猫報告の投稿時に「この子かも」と候補を提示するAI機能のための、
             猫ごとの特徴データ（face_embedding）を計算します。写真がある猫のうち、
@@ -254,7 +254,7 @@ export default function Admin() {
                     <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, fontSize: 13 }}>
                       {c.photo
                         ? <img src={c.photo} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} />
-                        : <span>🐱</span>}
+                        : <span style={{ display: "flex" }}><Cat size={16} color="#c4a090" /></span>}
                       {c.name}
                     </div>
                   ))}
@@ -279,19 +279,19 @@ export default function Admin() {
               )}
 
               {tab === "cats" && (
-                <p style={{ margin: "0 0 4px", fontWeight: 500 }}>🐱 {item.name}</p>
+                <p style={{ margin: "0 0 4px", fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}><Cat size={14} /> {item.name}</p>
               )}
 
               {tab === "sightings" && (
                 <>
-                  <p style={{ margin: "0 0 4px", fontWeight: 500 }}>📍 目撃情報</p>
+                  <p style={{ margin: "0 0 4px", fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}><MapPin size={14} /> 目撃情報</p>
                   <p style={{ margin: 0, fontSize: 13, color: "#666" }}>{item.description?.slice(0, 80)}</p>
                 </>
               )}
 
               {tab === "reports" && (
                 <>
-                  <p style={{ margin: "0 0 4px", fontWeight: 500 }}>🚩 通報</p>
+                  <p style={{ margin: "0 0 4px", fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}><Flag size={14} /> 通報</p>
                   <p style={{ margin: 0, fontSize: 13, color: "#666" }}>理由: {item.reason}</p>
                   <p style={{ margin: 0, fontSize: 12, color: "#bbb" }}>対象ID: {item.target_id}</p>
                 </>
@@ -325,15 +325,15 @@ export default function Admin() {
                     <p style={{ margin: 0, fontWeight: 500 }}>
                       {item.nickname || item.name}
                       {item.role === "banned" && <span style={badgeRed}> BAN済み</span>}
-                      {item.verified && <span style={badgeGreen}> ✅ 認証済み</span>}
+                      {item.verified && <span style={{ ...badgeGreen, display: "inline-flex", alignItems: "center", gap: 3 }}> <CheckCircle2 size={11} /> 認証済み</span>}
                     </p>
                   </div>
                   <p style={{ margin: "0 0 4px", fontSize: 13, color: "#666" }}>{item.email}</p>
-                  <p style={{ margin: 0, fontSize: 12, color: "#999" }}>
+                  <p style={{ margin: 0, fontSize: 12, color: "#999", display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
                     種別: {
-                      item.account_type === "organization" ? "🏢 団体" :
-                      item.account_type === "activist" ? "🙋 活動者" :
-                      item.role === "admin" ? "⚙️ 管理者" : "👤 一般"
+                      item.account_type === "organization" ? <><Building2 size={11} /> 団体</> :
+                      item.account_type === "activist" ? <><Users size={11} /> 活動者</> :
+                      item.role === "admin" ? <><Shield size={11} /> 管理者</> : <><User size={11} /> 一般</>
                     }
                     {item.organization && ` ・ 所属: ${item.organization}`}
                   </p>
@@ -342,7 +342,7 @@ export default function Admin() {
 
               {tab === "blacklist" && (
                 <>
-                  <p style={{ margin: "0 0 4px", fontWeight: 500 }}>🚫 {item.email}</p>
+                  <p style={{ margin: "0 0 4px", fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}><Ban size={14} /> {item.email}</p>
                   <p style={{ margin: 0, fontSize: 13, color: "#666" }}>理由: {item.reason}</p>
                 </>
               )}
@@ -370,10 +370,10 @@ export default function Admin() {
                     onChange={(e) => setAccountType(item.id, e.target.value)}
                     style={selectStyle}
                   >
-                    <option value="general">👤 一般</option>
-                    <option value="activist">🙋 活動者</option>
-                    <option value="organization">🏢 団体</option>
-                    <option value="admin">⚙️ 管理者</option>
+                    <option value="general">一般</option>
+                    <option value="activist">活動者</option>
+                    <option value="organization">団体</option>
+                    <option value="admin">管理者</option>
                   </select>
                 </>
               )}

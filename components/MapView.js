@@ -6,6 +6,7 @@ import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import { supabase } from "../lib/supabase"
 import { PREFECTURE_CENTERS } from "../lib/prefectures"
+import { Cat, PawPrint, AlertTriangle, MapPin, Home, Map as MapIcon } from "lucide-react"
 
 // Leafletのpopupは生HTML文字列を描画するため（Reactと違い自動エスケープされない）、
 // ユーザー入力を含む値は必ずこの関数でエスケープしてから埋め込む（保存型XSS対策）
@@ -39,12 +40,12 @@ function createIcon(emoji, color) {
 
 // 地図上に表示するレイヤーの種類（クラスタリング・表示切替の単位）
 const LAYER_OPTIONS = [
-  { key: "sightings", label: "🐱 地域猫" },
-  { key: "stray", label: "🐈 野良猫" },
-  { key: "troubles", label: "⚠️ 困りごと" },
-  { key: "spots", label: "📍 スポット" },
-  { key: "adoptions", label: "🏠 里親募集" },
-  { key: "territories", label: "🗺️ ナワバリ" },
+  { key: "sightings", label: "地域猫", icon: Cat },
+  { key: "stray", label: "野良猫", icon: PawPrint },
+  { key: "troubles", label: "困りごと", icon: AlertTriangle },
+  { key: "spots", label: "スポット", icon: MapPin },
+  { key: "adoptions", label: "里親募集", icon: Home },
+  { key: "territories", label: "ナワバリ", icon: MapIcon },
 ]
 
 function MapLayers({ visibility, layersRef }) {
@@ -384,9 +385,10 @@ function LayerToggle({ visibility, onToggle }) {
             background: visibility[opt.key] ? "white" : "#f0e6e0",
             color: visibility[opt.key] ? "#3d3230" : "#bbb",
             borderColor: visibility[opt.key] ? "#f2c4a0" : "#e5ded9",
+            display: "flex", alignItems: "center", gap: 4,
           }}
         >
-          {opt.label}
+          <opt.icon size={13} /> {opt.label}
         </button>
       ))}
     </div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { supabase } from "../lib/supabase"
 import { getImageEmbedding, embeddingToVectorLiteral } from "../lib/catFaceAI"
+import { Search, Cat } from "lucide-react"
 
 // 選択された写真から「似ている登録済みの猫」をAIで検索して提示するコンポーネント。
 // 目撃情報・野良猫報告の投稿フォームなどで、猫を手動で探す手間を減らすために使う。
@@ -55,8 +56,8 @@ export default function CatMatchSuggestions({ photo, onSelect, selectedCatId }) 
 
   return (
     <div style={boxStyle}>
-      <p style={{ margin: "0 0 8px", fontSize: 12, color: "#9e7b6e" }}>
-        🔍 AIが似ている登録済みの猫を探しています（参考情報です。最終確認は目視でお願いします）
+      <p style={{ margin: "0 0 8px", fontSize: 12, color: "#9e7b6e", display: "flex", alignItems: "center", gap: 4 }}>
+        <Search size={12} /> AIが似ている登録済みの猫を探しています（参考情報です。最終確認は目視でお願いします）
       </p>
 
       {status === "loading" && <p style={mutedText}>解析中...</p>}
@@ -81,8 +82,8 @@ export default function CatMatchSuggestions({ photo, onSelect, selectedCatId }) 
               {m.photo ? (
                 <img src={m.photo} alt={m.name} style={thumbStyle} />
               ) : (
-                <div style={{ ...thumbStyle, background: "#f0e6e0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>
-                  🐱
+                <div style={{ ...thumbStyle, background: "#f0e6e0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Cat size={20} color="#c4a090" />
                 </div>
               )}
               <span style={nameStyle}>{m.name}</span>

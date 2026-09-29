@@ -5,7 +5,8 @@ import {
   Map, Cat, ClipboardList, AlertTriangle, Menu, X,
   LogIn, LogOut, Plus, MapPin, Scissors, Users,
   Heart, Shield, BookOpen, Mail, Trophy, Settings,
-  Home, MessageCircle, Bell, BellOff, Star, BarChart3
+  Home, MessageCircle, Bell, BellOff, Star, BarChart3,
+  Feather, ScrollText
 } from "lucide-react"
 import { isPushSupported, getPushSubscriptionStatus, subscribeToPush, unsubscribeFromPush } from "../lib/pushNotifications"
 
@@ -167,7 +168,7 @@ export default function Navbar() {
               <Scissors size={16} /> TNRカレンダー
             </button>
             <button onClick={() => go("/memorial")} style={menuBtn}>
-              🕊️ 訃報
+              <Feather size={16} /> 訃報
             </button>
 
             <p style={menuSection}>コミュニティ</p>
@@ -199,7 +200,9 @@ export default function Navbar() {
             <button onClick={() => go("/guide")} style={menuBtn}>
               <BookOpen size={16} /> 使い方ガイド
             </button>
-            <button onClick={() => go("/terms")} style={menuBtn}>📜 利用規約</button>
+            <button onClick={() => go("/terms")} style={menuBtn}>
+              <ScrollText size={16} /> 利用規約
+            </button>
             <button onClick={() => go("/privacy")} style={menuBtn}>
               <Shield size={16} /> プライバシーポリシー
             </button>

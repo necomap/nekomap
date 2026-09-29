@@ -2,17 +2,17 @@ import { useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { checkPostLimit } from "../../lib/checkPostLimit"
-import { ClipboardList } from "lucide-react"
+import { ClipboardList, Users } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { compressImage } from "../../lib/compressImage"
 import { PREFECTURES } from "../../lib/prefectures"
 
 const CATEGORIES = [
-  { value: "lost", label: "🔍 猫探し" },
-  { value: "sighting", label: "👀 目撃情報" },
-  { value: "rescue", label: "🏠 保護情報" },
-  { value: "tnr", label: "✂️ TNR" },
-  { value: "general", label: "💬 一般" },
+  { value: "lost", label: "猫探し" },
+  { value: "sighting", label: "目撃情報" },
+  { value: "rescue", label: "保護情報" },
+  { value: "tnr", label: "TNR" },
+  { value: "general", label: "一般" },
 ]
 
 export default function NewPost() {
@@ -60,8 +60,8 @@ export default function NewPost() {
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
       <PageTitle icon={<ClipboardList size={20} color="#e07a5f" />} title="掲示板に投稿" />
 
-      <p style={{ margin: "-16px 0 16px", fontSize: 12, color: "#bbb" }}>
-        🙋 ボランティア募集の投稿は<span onClick={() => router.push("/volunteer/new")} style={{ color: "#e07a5f", cursor: "pointer", textDecoration: "underline" }}>専用ページ</span>からどうぞ
+      <p style={{ margin: "-16px 0 16px", fontSize: 12, color: "#bbb", display: "flex", alignItems: "center", gap: 4 }}>
+        <Users size={12} /> ボランティア募集の投稿は<span onClick={() => router.push("/volunteer/new")} style={{ color: "#e07a5f", cursor: "pointer", textDecoration: "underline" }}>専用ページ</span>からどうぞ
       </p>
 
       <p style={{ marginBottom: 8, color: "#9e7b6e", fontSize: 13 }}>カテゴリを選択</p>

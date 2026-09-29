@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { checkPostLimit } from "../../lib/checkPostLimit"
-import { AlertTriangle } from "lucide-react"
+import { AlertTriangle, MapPin, Map, Pencil, CheckCircle2, Search } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { searchAddressCandidates, reverseGeocodeToPrefecture } from "../../lib/geocode"
 import { compressImage } from "../../lib/compressImage"
@@ -11,10 +11,10 @@ import { notifyArea } from "../../lib/notifyArea"
 import "leaflet/dist/leaflet.css"
 
 const TYPES = [
-  { value: "feces", label: "💩 糞尿被害" },
-  { value: "fight", label: "🐾 けんか多発" },
-  { value: "injury", label: "🩹 怪我・病気" },
-  { value: "other", label: "❓ その他" },
+  { value: "feces", label: "糞尿被害" },
+  { value: "fight", label: "けんか多発" },
+  { value: "injury", label: "怪我・病気" },
+  { value: "other", label: "その他" },
 ]
 
 export default function NewReport() {
@@ -212,16 +212,18 @@ export default function NewReport() {
               border: locationMode === mode ? "2px solid #e07a5f" : "2px solid #f2c4a0",
               background: locationMode === mode ? "#fff0e8" : "white",
               cursor: "pointer", fontFamily: "inherit",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
             }}
           >
-            {mode === "gps" ? "📍 GPS" : mode === "map" ? "🗺️ 地図" : "✏️ 住所"}
+            {mode === "gps" ? <MapPin size={14} /> : mode === "map" ? <Map size={14} /> : <Pencil size={14} />}
+            {mode === "gps" ? "GPS" : mode === "map" ? "地図" : "住所"}
           </button>
         ))}
       </div>
 
       {locationMode === "gps" && (
-        <p style={{ fontSize: 13, color: lat ? "#2e7d32" : "#999", marginBottom: 12 }}>
-          {lat ? `✅ 位置取得済み (${parseFloat(lat).toFixed(4)}, ${parseFloat(lng).toFixed(4)})` : "位置情報を取得中..."}
+        <p style={{ fontSize: 13, color: lat ? "#2e7d32" : "#999", marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}>
+          {lat ? <><CheckCircle2 size={14} /> {`位置取得済み (${parseFloat(lat).toFixed(4)}, ${parseFloat(lng).toFixed(4)})`}</> : "位置情報を取得中..."}
         </p>
       )}
 
@@ -229,7 +231,7 @@ export default function NewReport() {
         <>
           <p style={{ fontSize: 13, color: "#666", marginBottom: 8 }}>地図をタップして場所を指定してください</p>
           <div ref={mapRef} style={{ width: "100%", height: 240, borderRadius: 12, marginBottom: 12, border: "1px solid #f2c4a0" }} />
-          {lat && <p style={{ fontSize: 12, color: "#2e7d32", marginBottom: 12 }}>✅ 選択済み</p>}
+          {lat && <p style={{ fontSize: 12, color: "#2e7d32", marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle2 size={13} /> 選択済み</p>}
         </>
       )}
 
@@ -243,8 +245,8 @@ export default function NewReport() {
               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleGeocodeSearch())}
               style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
             />
-            <button type="button" onClick={handleGeocodeSearch} disabled={geocoding} style={searchBtnStyle}>
-              {geocoding ? "検索中..." : "🔍 検索"}
+            <button type="button" onClick={handleGeocodeSearch} disabled={geocoding} style={{ ...searchBtnStyle, display: "flex", alignItems: "center", gap: 4 }}>
+              {geocoding ? "検索中..." : <><Search size={14} /> 検索</>}
             </button>
           </div>
           {geocodeError && <p style={{ color: "red", fontSize: 12, marginBottom: 8 }}>{geocodeError}</p>}
@@ -255,14 +257,14 @@ export default function NewReport() {
                   key={i}
                   type="button"
                   onClick={() => selectCandidate(c)}
-                  style={{ ...candidateItemStyle, borderBottom: i < candidates.length - 1 ? "1px solid #f9ede6" : "none" }}
+                  style={{ ...candidateItemStyle, borderBottom: i < candidates.length - 1 ? "1px solid #f9ede6" : "none", display: "flex", alignItems: "center", gap: 4 }}
                 >
-                  📍 {c.displayName}
+                  <MapPin size={13} /> {c.displayName}
                 </button>
               ))}
             </div>
           )}
-          {selectedPlace && <p style={{ fontSize: 12, color: "#2e7d32", marginBottom: 12 }}>✅ {selectedPlace}</p>}
+          {selectedPlace && <p style={{ fontSize: 12, color: "#2e7d32", marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle2 size={13} /> {selectedPlace}</p>}
         </>
       )}
 

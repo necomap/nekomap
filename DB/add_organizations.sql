@@ -23,10 +23,16 @@
 --      ポリシーを“追加”する（既存ポリシーは削除しない。RLSは複数の
 --      ポリシーがOR条件で合成されるため、既存の「本人のみ編集可」に
 --      「チームメンバーも編集可」を安全に上乗せできる）。
+--
+-- 【注意】テーブル作成 → 列追加 → その列を使うRLSポリシー、という順番で
+--   実行される必要があるため、本ファイルは上から順に実行してください
+--   （前バージョンでは、users.organization_id列を追加する前にその列を
+--   参照するポリシーを作ろうとして「column organization_id does not
+--   exist」エラーになる順序ミスがあったため、2026-09-29に順序を修正）。
 -- ============================================================
 
 -- ------------------------------------------------------------
--- 1. organizations（チーム）テーブル
+-- 1. organizations（チーム）テーブル本体を先に作成（ポリシーはまだ付けない）
 -- ------------------------------------------------------------
 create table if not exists public.organizations (
   id uuid primary key default gen_random_uuid(),
@@ -35,6 +41,17 @@ create table if not exists public.organizations (
   created_at timestamptz not null default now()
 );
 
+-- ------------------------------------------------------------
+-- 2. users.organization_id（どのチームに所属しているか）
+--    ※ organizationsテーブルへの参照ポリシーより先に、この列を作る
+-- ------------------------------------------------------------
+alter table public.users
+  add column if not exists organization_id uuid references public.organizations(id);
+
+-- ------------------------------------------------------------
+-- 3. organizationsテーブルのRLSを有効化し、ポリシーを設定
+--    （ここでようやくusers.organization_idを参照できる）
+-- ------------------------------------------------------------
 alter table public.organizations enable row level security;
 
 drop policy if exists "メンバーと管理者が閲覧可能" on public.organizations;
@@ -54,12 +71,6 @@ drop policy if exists "作成者と管理者が更新可能" on public.organizat
 create policy "作成者と管理者が更新可能"
   on public.organizations for update
   using (auth.uid() = created_by or public.is_admin());
-
--- ------------------------------------------------------------
--- 2. users.organization_id（どのチームに所属しているか）
--- ------------------------------------------------------------
-alter table public.users
-  add column if not exists organization_id uuid references public.organizations(id);
 
 -- 「自分」と「target_id」が同じチームに所属しているかを判定する関数
 -- （usersテーブルへの参照はRLSを経由しないので、is_admin()と同様に
@@ -91,7 +102,7 @@ create policy "同じチームのメンバーが閲覧可能"
   using (public.is_org_member(id));
 
 -- ------------------------------------------------------------
--- 3. organization_invites（招待）
+-- 4. organization_invites（招待）
 -- ------------------------------------------------------------
 create table if not exists public.organization_invites (
   id uuid primary key default gen_random_uuid(),
@@ -164,7 +175,7 @@ $$;
 grant execute on function public.accept_org_invite(text) to authenticated;
 
 -- ------------------------------------------------------------
--- 4. 各コンテンツテーブルに「同じチームのメンバーは更新可能」を追加
+-- 5. 各コンテンツテーブルに「同じチームのメンバーは更新可能」を追加
 --    （既存の「本人のみ更新可」ポリシーはそのまま。OR条件で上乗せされる）
 -- ------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
-import { BarChart3 } from "lucide-react"
+import { BarChart3, Scissors, Cat, Tag } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 
 // 地域別 活動統計ダッシュボード。
@@ -52,9 +52,9 @@ export default function Stats() {
       </p>
 
       <div style={statTileRow}>
-        <StatTile label="✂️ TNR完了数（全国）" value={tnrDone} />
-        <StatTile label="🐱 登録猫数（全国）" value={catsTotal} />
-        <StatTile label="📊 地域タグ付き投稿数" value={grandTotal - (unset?.total || 0)} />
+        <StatTile label={<><Scissors size={12} /> TNR完了数（全国）</>} value={tnrDone} />
+        <StatTile label={<><Cat size={12} /> 登録猫数（全国）</>} value={catsTotal} />
+        <StatTile label={<><Tag size={12} /> 地域タグ付き投稿数</>} value={grandTotal - (unset?.total || 0)} />
       </div>
 
       <h3 style={sectionTitle}>都道府県別 総投稿数（上位{top.length}件）</h3>
@@ -128,7 +128,7 @@ export default function Stats() {
 function StatTile({ label, value }) {
   return (
     <div style={tileStyle}>
-      <p style={{ margin: 0, fontSize: 12, color: "#9e7b6e" }}>{label}</p>
+      <p style={{ margin: 0, fontSize: 12, color: "#9e7b6e", display: "flex", alignItems: "center", gap: 4 }}>{label}</p>
       <p style={{ margin: "4px 0 0", fontSize: 24, fontWeight: 700, color: "#3d3230" }}>
         {value === null ? "-" : value.toLocaleString()}
       </p>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import dynamic from "next/dynamic"
+import { Cat, Feather, AlertTriangle, CheckCircle2, Calendar, Scissors, Hospital, ClipboardList, Eye, MapPin } from "lucide-react"
 
 const CatMap = dynamic(() => import("../../components/CatMap"), { ssr: false })
 
@@ -202,8 +203,8 @@ export default function CatDetail() {
       {cat.photo ? (
         <img src={cat.photo} alt={cat.name} style={{ width: "100%", height: 240, objectFit: "cover", borderRadius: 16, marginBottom: 16 }} />
       ) : (
-        <div style={{ width: "100%", height: 240, background: "#f0e6e0", borderRadius: 16, marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 80 }}>
-          🐱
+        <div style={{ width: "100%", height: 240, background: "#f0e6e0", borderRadius: 16, marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Cat size={64} color="#c4a090" />
         </div>
       )}
 
@@ -216,8 +217,8 @@ export default function CatDetail() {
 
       {cat.memorial && (
         <div style={memorialBanner}>
-          <p style={{ margin: 0, fontWeight: 600, fontSize: 15 }}>
-            🕊️ {cat.name}は虹の橋を渡りました
+          <p style={{ margin: 0, fontWeight: 600, fontSize: 15, display: "flex", alignItems: "center", gap: 6 }}>
+            <Feather size={16} /> {cat.name}は虹の橋を渡りました
           </p>
           {cat.memorial_date && (
             <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9e7b6e" }}>{cat.memorial_date}</p>
@@ -232,8 +233,8 @@ export default function CatDetail() {
 
       {!cat.memorial && isOwnerOrAdmin && pendingReports.length > 0 && (
         <div style={reportBanner}>
-          <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 13, color: "#e65100" }}>
-            ⚠️ {pendingReports.length}件の訃報に関する報告があります
+          <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 13, color: "#e65100", display: "flex", alignItems: "center", gap: 6 }}>
+            <AlertTriangle size={14} /> {pendingReports.length}件の訃報に関する報告があります
           </p>
           {pendingReports.map((r) => (
             <p key={r.id} style={{ margin: "2px 0", fontSize: 12, color: "#666" }}>・{r.reason}</p>
@@ -245,7 +246,7 @@ export default function CatDetail() {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
             {cat.sex && <tr style={rowStyle}><td style={labelStyle}>性別</td><td>{cat.sex}</td></tr>}
-            <tr style={rowStyle}><td style={labelStyle}>避妊・去勢</td><td>{cat.neutered ? "✅ 済み" : "未"}</td></tr>
+            <tr style={rowStyle}><td style={labelStyle}>避妊・去勢</td><td>{cat.neutered ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><CheckCircle2 size={13} /> 済み</span> : "未"}</td></tr>
             {cat.features && <tr style={rowStyle}><td style={labelStyle}>特徴</td><td>{cat.features}</td></tr>}
             {cat.notes && <tr style={rowStyle}><td style={labelStyle}>注意事項</td><td style={{ color: "#e07a5f" }}>{cat.notes}</td></tr>}
           </tbody>
@@ -254,7 +255,7 @@ export default function CatDetail() {
 
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <h3 style={sectionTitle}>✂️ TNR記録</h3>
+          <h3 style={{ ...sectionTitle, display: "flex", alignItems: "center", gap: 6 }}><Scissors size={16} /> TNR記録</h3>
           {user && (
             <button onClick={addTnr} style={editBtn}>＋ 追加</button>
           )}
@@ -266,13 +267,13 @@ export default function CatDetail() {
           <div key={t.id} style={{ ...tagStyle, marginBottom: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: "0 0 4px", fontWeight: 500 }}>
-                  {t.done ? "✅" : "📅"} {t.cat_name}
+                <p style={{ margin: "0 0 4px", fontWeight: 500, display: "flex", alignItems: "center", gap: 4 }}>
+                  {t.done ? <CheckCircle2 size={13} /> : <Calendar size={13} />} {t.cat_name}
                 </p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 4, fontSize: 12 }}>
                   {t.capture_date && <span style={{ color: "#e07a5f" }}>捕獲: {t.capture_date}</span>}
                   {t.surgery_date && <span style={{ color: "#7b61ff" }}>手術: {t.surgery_date}</span>}
-                  {t.hospital && <span style={{ color: "#888" }}>🏥 {t.hospital}</span>}
+                  {t.hospital && <span style={{ color: "#888", display: "inline-flex", alignItems: "center", gap: 3 }}><Hospital size={12} /> {t.hospital}</span>}
                   {t.release_date && <span style={{ color: "#43a047" }}>放猫: {t.release_date}</span>}
                 </div>
                 {t.organization && <p style={{ margin: "4px 0 0", fontSize: 12, color: "#4a90e2" }}>{t.organization}</p>}
@@ -290,7 +291,7 @@ export default function CatDetail() {
 
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <h3 style={sectionTitle}>🏥 健康記録</h3>
+          <h3 style={{ ...sectionTitle, display: "flex", alignItems: "center", gap: 6 }}><Hospital size={16} /> 健康記録</h3>
           {user && (
             <button onClick={() => setShowHealthForm(!showHealthForm)} style={editBtn}>＋ 追加</button>
           )}
@@ -314,14 +315,14 @@ export default function CatDetail() {
 
         {healthRecords.length === 0 && <p style={{ color: "#bbb", fontSize: 14 }}>記録はありません</p>}
         {healthRecords.map((h) => (
-          <div key={h.id} style={{ ...tagStyle, marginBottom: 6 }}>
-            📋 {h.date} {h.type} {h.note && `- ${h.note}`}
+          <div key={h.id} style={{ ...tagStyle, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+            <ClipboardList size={13} /> {h.date} {h.type} {h.note && `- ${h.note}`}
           </div>
         ))}
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <h3 style={sectionTitle}>👀 目撃履歴・ナワバリ</h3>
+        <h3 style={{ ...sectionTitle, display: "flex", alignItems: "center", gap: 6 }}><Eye size={16} /> 目撃履歴・ナワバリ</h3>
         {sightings.length === 0 && !territory && (
           <p style={{ color: "#bbb", fontSize: 14 }}>目撃情報・ナワバリはありません</p>
         )}
@@ -332,8 +333,8 @@ export default function CatDetail() {
           <p style={{ fontSize: 11, color: "#999", margin: "4px 0 0" }}>※地図上の位置は約100mぼかしています</p>
         )}
         {sightings.map((s) => (
-          <div key={s.id} style={{ ...tagStyle, marginBottom: 6 }}>
-            📍 {new Date(s.created_at).toLocaleDateString("ja-JP")}
+          <div key={s.id} style={{ ...tagStyle, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+            <MapPin size={13} /> {new Date(s.created_at).toLocaleDateString("ja-JP")}
             {s.description && ` - ${s.description}`}
           </div>
         ))}
@@ -341,8 +342,8 @@ export default function CatDetail() {
 
       {!cat.memorial && isOwnerOrAdmin && (
         <div style={{ marginTop: 32 }}>
-          <button onClick={() => setShowMemorialForm(!showMemorialForm)} style={smallGhostBtn}>
-            🕊️ 訃報として記録する
+          <button onClick={() => setShowMemorialForm(!showMemorialForm)} style={{ ...smallGhostBtn, display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <Feather size={13} /> 訃報として記録する
           </button>
 
           {showMemorialForm && (

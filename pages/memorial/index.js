@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { Feather, Cat } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 export default function Memorial() {
   const router = useRouter()
@@ -25,7 +27,7 @@ export default function Memorial() {
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
       <button onClick={() => router.push("/cats")} style={backBtn}>← 地域猫一覧に戻る</button>
 
-      <h1 style={{ margin: "0 0 8px", color: "#3d3230" }}>🕊️ 訃報</h1>
+      <PageTitle icon={<Feather size={20} color="#e07a5f" />} title="訃報" />
       <p style={{ color: "#9e7b6e", fontSize: 14, marginBottom: 24 }}>
         虹の橋を渡った地域猫たちを偲んで。
       </p>
@@ -50,13 +52,13 @@ export default function Memorial() {
             ) : (
               <div style={{
                 width: 72, height: 72, background: "#f0e6e0", borderRadius: 10,
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32,
+                display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                🐱
+                <Cat size={30} color="#c4a090" />
               </div>
             )}
             <div style={{ flex: 1 }}>
-              <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 16 }}>🕊️ {cat.name}</p>
+              <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 16, display: "flex", alignItems: "center", gap: 6 }}><Feather size={14} /> {cat.name}</p>
               {cat.memorial_date && (
                 <p style={{ margin: "0 0 4px", fontSize: 12, color: "#9e7b6e" }}>{cat.memorial_date}</p>
               )}

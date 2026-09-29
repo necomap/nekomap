@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { MessageCircle } from "lucide-react"
+import { MessageCircle, Cat, Building2, Camera } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 
 export default function ChatList() {
@@ -81,7 +81,7 @@ export default function ChatList() {
           }}>
             {r.otherUser?.avatar
               ? <img src={r.otherUser.avatar} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              : "🐱"}
+              : <Cat size={20} color="#c4a090" />}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -89,7 +89,7 @@ export default function ChatList() {
                 {r.otherUser?.nickname || "匿名"}
               </span>
               {r.otherUser?.organization && (
-                <span style={{ fontSize: 11, color: "#4a90e2" }}>🏢{r.otherUser.organization}</span>
+                <span style={{ fontSize: 11, color: "#4a90e2", display: "inline-flex", alignItems: "center", gap: 2 }}><Building2 size={10} />{r.otherUser.organization}</span>
               )}
             </div>
             <p style={{
@@ -97,7 +97,7 @@ export default function ChatList() {
               fontWeight: r.unread ? 600 : 400,
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
             }}>
-              {r.lastMsg ? (r.lastMsg.message || (r.lastMsg.photo ? "📷 画像" : "")) : "まだメッセージはありません"}
+              {r.lastMsg ? (r.lastMsg.message || (r.lastMsg.photo ? <><Camera size={11} style={{ verticalAlign: "middle" }} /> 画像</> : "")) : "まだメッセージはありません"}
             </p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0 }}>

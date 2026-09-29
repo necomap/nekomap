@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { AlertTriangle } from "lucide-react"
+import { AlertTriangle, MapPin, Users, CheckCircle2 } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import RegionSelector from "../../components/RegionSelector"
 import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
@@ -10,10 +10,10 @@ import { loadFavoriteIds } from "../../lib/favorites"
 import QrCodeButton from "../../components/QrCodeButton"
 
 const TYPE_LABELS = {
-  feces: "💩 糞尿被害",
-  fight: "🐾 けんか多発",
-  injury: "🩹 怪我・病気",
-  other: "❓ その他",
+  feces: "糞尿被害",
+  fight: "けんか多発",
+  injury: "怪我・病気",
+  other: "その他",
 }
 
 const STATUS_COLORS = {
@@ -121,7 +121,7 @@ export default function Reports() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <PageTitle icon={<AlertTriangle size={20} color="#e07a5f" />} title="困りごとマップ" />
         <div style={{ display: "flex", gap: 8 }}>
-          <QrCodeButton label="📮 QRコード" />
+          <QrCodeButton label="QRコード" />
           <button onClick={() => router.push("/reports/new")} style={buttonStyle}>
             ＋ 報告する
           </button>
@@ -184,14 +184,14 @@ export default function Reports() {
           )}
 
           {report.volunteer_name && (
-            <div style={{ padding: "8px 12px", background: "#e3f2fd", borderRadius: 8, marginBottom: 8, fontSize: 13 }}>
-              🙋 <b>{report.volunteer_name}</b> が対応中
+            <div style={{ padding: "8px 12px", background: "#e3f2fd", borderRadius: 8, marginBottom: 8, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+              <Users size={14} /> <b>{report.volunteer_name}</b> が対応中
             </div>
           )}
 
           {report.action && (
-            <div style={{ padding: "8px 12px", background: "#e8f5e9", borderRadius: 8, marginBottom: 8, fontSize: 13 }}>
-              ✅ 解決内容: {report.action}
+            <div style={{ padding: "8px 12px", background: "#e8f5e9", borderRadius: 8, marginBottom: 8, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+              <CheckCircle2 size={14} /> 解決内容: {report.action}
             </div>
           )}
 
@@ -205,15 +205,15 @@ export default function Reports() {
               href={`https://www.google.com/maps?q=${report.lat},${report.lng}`}
               target="_blank"
               rel="noopener noreferrer"
-              style={mapLinkStyle}
+              style={{ ...mapLinkStyle, display: "inline-flex", alignItems: "center", gap: 4 }}
             >
-              📍 地図で場所を確認する
+              <MapPin size={13} /> 地図で場所を確認する
             </a>
           )}
 
           {user && report.status === "未対応" && (
-            <button onClick={() => handleVolunteer(report)} style={volunteerBtn}>
-              🙋 対応します
+            <button onClick={() => handleVolunteer(report)} style={{ ...volunteerBtn, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+              <Users size={14} /> 対応します
             </button>
           )}
 
@@ -221,9 +221,9 @@ export default function Reports() {
             <div style={{ display: "flex", gap: 8 }}>
               <button
                 onClick={() => handleResolve(report.id)}
-                style={{ ...volunteerBtn, background: "#43a047", flex: 1 }}
+                style={{ ...volunteerBtn, background: "#43a047", flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
               >
-                ✅ 解決済みにする
+                <CheckCircle2 size={14} /> 解決済みにする
               </button>
               <button
                 onClick={async () => {
@@ -247,9 +247,9 @@ export default function Reports() {
             profile?.role === "admin" && (
             <button
               onClick={() => handleResolve(report.id)}
-              style={{ ...volunteerBtn, background: "#43a047" }}
+              style={{ ...volunteerBtn, background: "#43a047", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             >
-              ✅ 解決済みにする（管理者）
+              <CheckCircle2 size={14} /> 解決済みにする（管理者）
             </button>
           )}
         </div>

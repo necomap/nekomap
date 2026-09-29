@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { Megaphone } from "lucide-react"
 
 // AdSense承認が下りたら true にすると、下の実広告表示に切り替わる。
 // それまでは「スポンサー募集中」の案内をこの枠に表示する。
@@ -42,8 +43,8 @@ export default function AdBanner({ slot = "auto" }) {
         textAlign: "center", textDecoration: "none",
       }}
     >
-      <p style={{ margin: 0, fontSize: 13, color: "#e07a5f", fontWeight: 600 }}>
-        📢 スポンサー募集中
+      <p style={{ margin: 0, fontSize: 13, color: "#e07a5f", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+        <Megaphone size={14} /> スポンサー募集中
       </p>
       <p style={{ margin: "4px 0 0", fontSize: 12, color: "#9e7b6e" }}>
         この場所に広告を掲載しませんか？お問い合わせはこちら

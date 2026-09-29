@@ -1,7 +1,7 @@
 import { useState, useRef } from "react"
 import { supabase } from "../lib/supabase"
 import { useRouter } from "next/router"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, Mail, Cat } from "lucide-react"
 import { compressImage } from "../lib/compressImage"
 
 export default function Register() {
@@ -76,7 +76,7 @@ export default function Register() {
   if (done) {
     return (
       <div style={{ maxWidth: 400, margin: "100px auto", padding: 24, textAlign: "center" }}>
-        <div style={{ fontSize: 64, marginBottom: 16 }}>📧</div>
+        <div style={{ display: "flex", justifyContent: "center", color: "#e07a5f", marginBottom: 16 }}><Mail size={64} /></div>
         <h2 style={{ color: "#e07a5f", marginBottom: 16 }}>確認メールを送信しました</h2>
         <p style={{ color: "#9e7b6e", fontSize: 14, lineHeight: 1.8 }}>
           <b>{email}</b> に確認メールを送信しました。<br />
@@ -110,7 +110,7 @@ export default function Register() {
         >
           {avatarPreview ? (
             <img src={avatarPreview} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          ) : "🐱"}
+          ) : <Cat size={30} color="#c4a090" />}
         </div>
         <p style={{ fontSize: 12, color: "#9e7b6e" }}>タップしてアバター画像を設定（任意）</p>
         <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatarChange} />
