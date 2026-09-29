@@ -5,7 +5,7 @@ import {
   Map, Cat, ClipboardList, AlertTriangle, Menu, X,
   LogIn, LogOut, Plus, MapPin, Scissors, Users,
   Heart, Shield, BookOpen, Mail, Trophy, Settings,
-  Home, MessageCircle, Bell, BellOff
+  Home, MessageCircle, Bell, BellOff, Star, BarChart3
 } from "lucide-react"
 import { isPushSupported, getPushSubscriptionStatus, subscribeToPush, unsubscribeFromPush } from "../lib/pushNotifications"
 
@@ -186,6 +186,14 @@ export default function Navbar() {
             <button onClick={() => go("/ranking")} style={menuBtn}>
               <Trophy size={16} /> 地域ランキング
             </button>
+            <button onClick={() => go("/stats")} style={menuBtn}>
+              <BarChart3 size={16} /> 地域別統計
+            </button>
+            {user && (
+              <button onClick={() => go("/favorites")} style={menuBtn}>
+                <Star size={16} /> お気に入り
+              </button>
+            )}
 
             <p style={menuSection}>その他</p>
             <button onClick={() => go("/guide")} style={menuBtn}>

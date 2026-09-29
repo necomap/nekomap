@@ -14,7 +14,10 @@ export default function EditProfile() {
     donation_bank: "", donation_amazon: "",
     account_type: "general",
     default_prefecture: "",
-    notification_preferences: { chat: true, memorial_report: true, trouble_response: true },
+    notification_preferences: {
+      chat: true, memorial_report: true, trouble_response: true,
+      area_new_post: false, weekly_digest: false,
+    },
     email_notifications_enabled: false,
   })
   const [loading, setLoading] = useState(false)
@@ -35,6 +38,7 @@ export default function EditProfile() {
           ...data,
           notification_preferences: {
             chat: true, memorial_report: true, trouble_response: true,
+            area_new_post: false, weekly_digest: false,
             ...(data.notification_preferences || {}),
           },
           email_notifications_enabled: !!data.email_notifications_enabled,
@@ -205,6 +209,31 @@ export default function EditProfile() {
         />
         🙋 困りごと投稿への対応
       </label>
+      <label style={checkboxRowStyle}>
+        <input
+          type="checkbox"
+          checked={!!profile.notification_preferences?.area_new_post}
+          onChange={(e) => setProfile({
+            ...profile,
+            notification_preferences: { ...profile.notification_preferences, area_new_post: e.target.checked },
+          })}
+        />
+        📍 エリア新着通知（デフォルト地域に新しい困りごと・里親募集・ボランティア募集が投稿されたとき）
+      </label>
+      <label style={checkboxRowStyle}>
+        <input
+          type="checkbox"
+          checked={!!profile.notification_preferences?.weekly_digest}
+          onChange={(e) => setProfile({
+            ...profile,
+            notification_preferences: { ...profile.notification_preferences, weekly_digest: e.target.checked },
+          })}
+        />
+        📬 週次ダイジェストメール（デフォルト地域の新着を週1回まとめて。メール通知ONが必要）
+      </label>
+      <p style={{ fontSize: 12, color: "#9e7b6e", marginBottom: 16, lineHeight: 1.6 }}>
+        ※ エリア新着通知・週次ダイジェストメールは、上の「📍 表示地域」でデフォルト地域を設定していないと届きません。
+      </p>
 
       <label style={{ ...checkboxRowStyle, marginTop: 12 }}>
         <input

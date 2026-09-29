@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { getOrCreateDmRoom } from "../../lib/chatRoom"
+import QrCodeButton from "../../components/QrCodeButton"
 
 const CATEGORIES = [
   { value: "all", label: "すべて" },
@@ -103,7 +104,10 @@ export default function BoardDetail() {
 
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
-      <button onClick={() => router.push("/board")} style={backBtn}>← 掲示板に戻る</button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <button onClick={() => router.push("/board")} style={backBtn}>← 掲示板に戻る</button>
+        <QrCodeButton label="📮 QRコード" />
+      </div>
 
       <span style={badgeStyle}>
         {CATEGORIES.find((c) => c.value === post.category)?.label || "💬 一般"}

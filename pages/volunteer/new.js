@@ -5,6 +5,7 @@ import { Users } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { searchAddressCandidates, reverseGeocodeToPrefecture } from "../../lib/geocode"
 import { PREFECTURES } from "../../lib/prefectures"
+import { notifyArea } from "../../lib/notifyArea"
 import "leaflet/dist/leaflet.css"
 
 export default function NewVolunteer() {
@@ -114,14 +115,15 @@ export default function NewVolunteer() {
     if (!title) { setError("タイトルを入力してください"); return }
     setLoading(true)
     const { data: userData } = await supabase.auth.getUser()
-    const { error } = await supabase.from("volunteer_requests").insert({
+    const { data: inserted, error } = await supabase.from("volunteer_requests").insert({
       title, location, description, date,
       lat: lat ? parseFloat(lat) : null,
       lng: lng ? parseFloat(lng) : null,
       prefecture: prefecture || null,
       created_by: userData.user?.id,
-    })
+    }).select("id").single()
     if (error) { setError("投稿に失敗しました"); setLoading(false); return }
+    if (prefecture && inserted?.id) notifyArea("volunteer_requests", inserted.id)
     router.push("/volunteer")
   }
 

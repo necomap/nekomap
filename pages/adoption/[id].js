@@ -4,6 +4,7 @@ import { useRouter } from "next/router"
 import { Home } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import { getOrCreateDmRoom } from "../../lib/chatRoom"
+import QrCodeButton from "../../components/QrCodeButton"
 
 export default function AdoptionDetail() {
   const router = useRouter()
@@ -73,6 +74,10 @@ export default function AdoptionDetail() {
   return (
     <div style={{ maxWidth: 480, margin: "40px auto", padding: 24 }}>
       <PageTitle icon={<Home size={20} color="#e07a5f" />} title={listing.name} />
+
+      <div style={{ marginBottom: 12, textAlign: "right" }}>
+        <QrCodeButton label="📮 ポスター用QRコード" />
+      </div>
 
       {listing.status === "成立" && (
         <div style={{ marginBottom: 12, padding: "8px 12px", background: "#eee", borderRadius: 8, fontSize: 13, color: "#888" }}>

@@ -5,6 +5,9 @@ import { AlertTriangle } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import RegionSelector from "../../components/RegionSelector"
 import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
+import FavoriteButton from "../../components/FavoriteButton"
+import { loadFavoriteIds } from "../../lib/favorites"
+import QrCodeButton from "../../components/QrCodeButton"
 
 const TYPE_LABELS = {
   feces: "💩 糞尿被害",
@@ -25,6 +28,7 @@ export default function Reports() {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [filter, setFilter] = useState("all")
+  const [favoriteIds, setFavoriteIds] = useState(new Set())
   const { region, changeRegion } = useRegionFilter()
 
   useEffect(() => {
@@ -36,11 +40,20 @@ export default function Reports() {
           .from("users").select("nickname, name, organization, account_type, role")
           .eq("id", userData.user.id).single()
         setProfile(p)
+        setFavoriteIds(await loadFavoriteIds(userData.user.id, "trouble_reports"))
       }
       loadReports()
     }
     init()
   }, [])
+
+  function handleFavoriteChange(id, next) {
+    setFavoriteIds((prev) => {
+      const updated = new Set(prev)
+      if (next) updated.add(id); else updated.delete(id)
+      return updated
+    })
+  }
 
   async function loadReports() {
     const { data } = await supabase
@@ -107,9 +120,12 @@ export default function Reports() {
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <PageTitle icon={<AlertTriangle size={20} color="#e07a5f" />} title="困りごとマップ" />
-        <button onClick={() => router.push("/reports/new")} style={buttonStyle}>
-          ＋ 報告する
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <QrCodeButton label="📮 QRコード" />
+          <button onClick={() => router.push("/reports/new")} style={buttonStyle}>
+            ＋ 報告する
+          </button>
+        </div>
       </div>
 
       <RegionSelector region={region ?? ""} onChange={changeRegion} />
@@ -139,13 +155,25 @@ export default function Reports() {
         <div key={report.id} style={cardStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
             <span style={{ fontWeight: 600, fontSize: 15 }}>{TYPE_LABELS[report.type] || report.type}</span>
-            <span style={{
-              fontSize: 12, padding: "3px 10px", borderRadius: 12,
-              background: STATUS_COLORS[report.status]?.bg || "#f5f5f5",
-              color: STATUS_COLORS[report.status]?.color || "#666",
-            }}>
-              {report.status}
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{
+                fontSize: 12, padding: "3px 10px", borderRadius: 12,
+                background: STATUS_COLORS[report.status]?.bg || "#f5f5f5",
+                color: STATUS_COLORS[report.status]?.color || "#666",
+              }}>
+                {report.status}
+              </span>
+              {user && (
+                <FavoriteButton
+                  userId={user.id}
+                  targetTable="trouble_reports"
+                  targetId={report.id}
+                  favorited={favoriteIds.has(report.id)}
+                  onChange={(next) => handleFavoriteChange(report.id, next)}
+                  size={16}
+                />
+              )}
+            </div>
           </div>
 
           {report.description && (

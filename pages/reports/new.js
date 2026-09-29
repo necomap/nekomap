@@ -7,6 +7,7 @@ import PageTitle from "../../components/PageTitle"
 import { searchAddressCandidates, reverseGeocodeToPrefecture } from "../../lib/geocode"
 import { compressImage } from "../../lib/compressImage"
 import { PREFECTURES } from "../../lib/prefectures"
+import { notifyArea } from "../../lib/notifyArea"
 import "leaflet/dist/leaflet.css"
 
 const TYPES = [
@@ -140,7 +141,7 @@ export default function NewReport() {
     }
 
     const { data: userData } = await supabase.auth.getUser()
-    const { error } = await supabase.from("trouble_reports").insert({
+    const { data: inserted, error } = await supabase.from("trouble_reports").insert({
       type,
       description,
       photo: photoUrl,
@@ -149,9 +150,10 @@ export default function NewReport() {
       address,
       prefecture: prefecture || null,
       created_by: userData.user?.id,
-    })
+    }).select("id").single()
 
     if (error) { setError("投稿に失敗しました"); setLoading(false); return }
+    if (prefecture && inserted?.id) notifyArea("trouble_reports", inserted.id)
     router.push("/reports")
   }
 

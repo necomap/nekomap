@@ -6,24 +6,41 @@ import PageTitle from "../../components/PageTitle"
 import { getOrCreateDmRoom } from "../../lib/chatRoom"
 import RegionSelector from "../../components/RegionSelector"
 import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
+import FavoriteButton from "../../components/FavoriteButton"
+import { loadFavoriteIds } from "../../lib/favorites"
 
 export default function AdoptionList() {
   const router = useRouter()
   const [listings, setListings] = useState([])
   const [statusFilter, setStatusFilter] = useState("募集中")
+  const [sexFilter, setSexFilter] = useState("all")
+  const [neuteredOnly, setNeuteredOnly] = useState(false)
+  const [feeFilter, setFeeFilter] = useState("all")
   const [user, setUser] = useState(null)
   const [contactingId, setContactingId] = useState(null)
+  const [favoriteIds, setFavoriteIds] = useState(new Set())
   const { region, changeRegion } = useRegionFilter()
 
   useEffect(() => {
     async function init() {
       const { data } = await supabase.auth.getUser()
       setUser(data.user)
+      if (data.user) {
+        setFavoriteIds(await loadFavoriteIds(data.user.id, "adoptions"))
+      }
       loadListings()
     }
     init()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  function handleFavoriteChange(id, next) {
+    setFavoriteIds((prev) => {
+      const updated = new Set(prev)
+      if (next) updated.add(id); else updated.delete(id)
+      return updated
+    })
+  }
 
   async function loadListings() {
     const { data } = await supabase
@@ -51,7 +68,11 @@ export default function AdoptionList() {
     }
   }
 
-  const filtered = filterByRegion(listings, region).filter((l) => statusFilter === "all" || l.status === statusFilter)
+  const filtered = filterByRegion(listings, region)
+    .filter((l) => statusFilter === "all" || l.status === statusFilter)
+    .filter((l) => sexFilter === "all" || l.sex === sexFilter)
+    .filter((l) => !neuteredOnly || l.neutered)
+    .filter((l) => feeFilter === "all" || (feeFilter === "free" ? !l.fee_amount : l.fee_amount > 0))
 
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
@@ -86,6 +107,24 @@ export default function AdoptionList() {
         </button>
       </div>
 
+      <div style={detailFilterRow}>
+        <select value={sexFilter} onChange={(e) => setSexFilter(e.target.value)} style={detailFilterSelect}>
+          <option value="all">性別: すべて</option>
+          <option value="オス">オス</option>
+          <option value="メス">メス</option>
+          <option value="不明">不明</option>
+        </select>
+        <select value={feeFilter} onChange={(e) => setFeeFilter(e.target.value)} style={detailFilterSelect}>
+          <option value="all">負担金額: すべて</option>
+          <option value="free">無料のみ</option>
+          <option value="paid">有料のみ</option>
+        </select>
+        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#9e7b6e", whiteSpace: "nowrap" }}>
+          <input type="checkbox" checked={neuteredOnly} onChange={(e) => setNeuteredOnly(e.target.checked)} />
+          避妊・去勢済みのみ
+        </label>
+      </div>
+
       {filtered.length === 0 && (
         <p style={{ color: "#999", textAlign: "center" }}>該当する里親募集はまだありません</p>
       )}
@@ -102,9 +141,19 @@ export default function AdoptionList() {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <h3 style={{ margin: 0, fontSize: 16 }}>{l.name}</h3>
+                <h3 style={{ margin: 0, fontSize: 16, flex: 1 }}>{l.name}</h3>
                 {l.status === "成立" && (
                   <span style={statusBadge}>成立済み</span>
+                )}
+                {user && (
+                  <FavoriteButton
+                    userId={user.id}
+                    targetTable="adoptions"
+                    targetId={l.id}
+                    favorited={favoriteIds.has(l.id)}
+                    onChange={(next) => handleFavoriteChange(l.id, next)}
+                    size={16}
+                  />
                 )}
               </div>
               <p style={{ margin: "4px 0", fontSize: 13, color: "#666" }}>
@@ -136,6 +185,13 @@ export default function AdoptionList() {
 const filterBtn = {
   padding: "6px 14px", borderRadius: 20, fontSize: 13,
   border: "none", cursor: "pointer", fontFamily: "inherit",
+}
+const detailFilterRow = {
+  display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center",
+}
+const detailFilterSelect = {
+  padding: "6px 10px", border: "1px solid #f2c4a0", borderRadius: 10,
+  fontSize: 13, fontFamily: "inherit", background: "white", color: "#3d3230",
 }
 const cardStyle = {
   border: "1px solid #f2c4a0", borderRadius: 16,

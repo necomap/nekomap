@@ -6,22 +6,37 @@ import PageTitle from "../../components/PageTitle"
 import { getOrCreateDmRoom } from "../../lib/chatRoom"
 import RegionSelector from "../../components/RegionSelector"
 import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
+import FavoriteButton from "../../components/FavoriteButton"
+import { loadFavoriteIds } from "../../lib/favorites"
+import QrCodeButton from "../../components/QrCodeButton"
 
 export default function Volunteer() {
   const router = useRouter()
   const [requests, setRequests] = useState([])
   const [user, setUser] = useState(null)
   const [applyingId, setApplyingId] = useState(null)
+  const [favoriteIds, setFavoriteIds] = useState(new Set())
   const { region, changeRegion } = useRegionFilter()
 
   useEffect(() => {
     async function init() {
       const { data } = await supabase.auth.getUser()
       setUser(data.user)
+      if (data.user) {
+        setFavoriteIds(await loadFavoriteIds(data.user.id, "volunteer_requests"))
+      }
       loadRequests()
     }
     init()
   }, [])
+
+  function handleFavoriteChange(id, next) {
+    setFavoriteIds((prev) => {
+      const updated = new Set(prev)
+      if (next) updated.add(id); else updated.delete(id)
+      return updated
+    })
+  }
 
   async function loadRequests() {
     // usersテーブル本体は本人・管理者のみ閲覧可のため、FK自動埋め込みは使えない。
@@ -64,9 +79,12 @@ export default function Volunteer() {
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
         <PageTitle icon={<Users size={20} color="#e07a5f" />} title="ボランティア募集" />
-        <button onClick={() => router.push("/volunteer/new")} style={buttonStyle}>
-          ＋ 募集する
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <QrCodeButton label="📮 QRコード" />
+          <button onClick={() => router.push("/volunteer/new")} style={buttonStyle}>
+            ＋ 募集する
+          </button>
+        </div>
       </div>
 
       <RegionSelector region={region ?? ""} onChange={changeRegion} />
@@ -77,7 +95,19 @@ export default function Volunteer() {
 
       {filtered.map((req) => (
         <div key={req.id} style={cardStyle}>
-          <h3 style={{ margin: "0 0 8px" }}>{req.title}</h3>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+            <h3 style={{ margin: "0 0 8px" }}>{req.title}</h3>
+            {user && (
+              <FavoriteButton
+                userId={user.id}
+                targetTable="volunteer_requests"
+                targetId={req.id}
+                favorited={favoriteIds.has(req.id)}
+                onChange={(next) => handleFavoriteChange(req.id, next)}
+                size={16}
+              />
+            )}
+          </div>
           {(req.users?.nickname || req.users?.organization) && (
             <p style={{ margin: "0 0 8px", fontSize: 13, color: "#9e7b6e" }}>
               🙋 {req.users?.nickname || "匿名"}

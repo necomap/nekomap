@@ -4,6 +4,8 @@ import { useRouter } from "next/router"
 import AdBanner from "../../components/AdBanner"
 import RegionSelector from "../../components/RegionSelector"
 import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
+import FavoriteButton from "../../components/FavoriteButton"
+import { loadFavoriteIds } from "../../lib/favorites"
 
 const CATEGORIES = [
   { value: "all", label: "すべて" },
@@ -20,16 +22,28 @@ export default function Board() {
   const [category, setCategory] = useState("all")
   const [search, setSearch] = useState("")
   const [user, setUser] = useState(null)
+  const [favoriteIds, setFavoriteIds] = useState(new Set())
   const { region, changeRegion } = useRegionFilter()
 
   useEffect(() => {
     async function init() {
       const { data } = await supabase.auth.getUser()
       setUser(data.user)
+      if (data.user) {
+        setFavoriteIds(await loadFavoriteIds(data.user.id, "posts"))
+      }
       loadPosts()
     }
     init()
   }, [category])
+
+  function handleFavoriteChange(id, next) {
+    setFavoriteIds((prev) => {
+      const updated = new Set(prev)
+      if (next) updated.add(id); else updated.delete(id)
+      return updated
+    })
+  }
 
   async function loadPosts() {
     // usersテーブル本体は本人・管理者のみ閲覧可のため、FK自動埋め込み(users(...))は使えない。
@@ -144,13 +158,25 @@ export default function Board() {
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
             <h3 style={{ margin: 0, fontSize: 16 }}>{post.title}</h3>
-            <span style={{
-              fontSize: 11, padding: "2px 8px", borderRadius: 10,
-              background: "#f0e6e0", color: "#e07a5f",
-              whiteSpace: "nowrap", marginLeft: 8
-            }}>
-              {CATEGORIES.find((c) => c.value === post.category)?.label || "💬 一般"}
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: 8, flexShrink: 0 }}>
+              <span style={{
+                fontSize: 11, padding: "2px 8px", borderRadius: 10,
+                background: "#f0e6e0", color: "#e07a5f",
+                whiteSpace: "nowrap",
+              }}>
+                {CATEGORIES.find((c) => c.value === post.category)?.label || "💬 一般"}
+              </span>
+              {user && (
+                <FavoriteButton
+                  userId={user.id}
+                  targetTable="posts"
+                  targetId={post.id}
+                  favorited={favoriteIds.has(post.id)}
+                  onChange={(next) => handleFavoriteChange(post.id, next)}
+                  size={16}
+                />
+              )}
+            </div>
           </div>
           <p style={{ margin: "0 0 8px", color: "#666", fontSize: 14 }}>
             {post.body?.slice(0, 100)}{post.body?.length > 100 ? "..." : ""}

@@ -7,6 +7,7 @@ import PageTitle from "../../components/PageTitle"
 import { searchAddressCandidates, reverseGeocodeToPrefecture } from "../../lib/geocode"
 import { compressImage } from "../../lib/compressImage"
 import { PREFECTURES } from "../../lib/prefectures"
+import { notifyArea } from "../../lib/notifyArea"
 import "leaflet/dist/leaflet.css"
 
 export default function NewAdoption() {
@@ -153,7 +154,7 @@ export default function NewAdoption() {
     }
 
     const { data: userData } = await supabase.auth.getUser()
-    const { error: insertError } = await supabase.from("adoptions").insert({
+    const { data: inserted, error: insertError } = await supabase.from("adoptions").insert({
       cat_id: catId || null,
       name,
       sex,
@@ -169,9 +170,10 @@ export default function NewAdoption() {
       lng: lng ? parseFloat(lng) : null,
       prefecture: prefecture || null,
       created_by: userData.user?.id,
-    })
+    }).select("id").single()
 
     if (insertError) { setError("投稿に失敗しました: " + insertError.message); setLoading(false); return }
+    if (prefecture && inserted?.id) notifyArea("adoptions", inserted.id)
     router.push("/adoption")
   }
 
