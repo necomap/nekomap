@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { Cat } from "lucide-react"
+import PageTitle from "../../components/PageTitle"
 
 export default function CatList() {
   const router = useRouter()
@@ -29,7 +31,7 @@ export default function CatList() {
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <h1>🐱 地域猫一覧</h1>
+        <PageTitle icon={<Cat size={20} color="#e07a5f" />} title="地域猫一覧" />
         <button onClick={() => router.push("/cats/new")} style={buttonStyle}>
           ＋ 猫を登録
         </button>

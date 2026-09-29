@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { ClipboardList } from "lucide-react"
 import AdBanner from "../../components/AdBanner"
 import RegionSelector from "../../components/RegionSelector"
 import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
 import FavoriteButton from "../../components/FavoriteButton"
 import { loadFavoriteIds } from "../../lib/favorites"
+import PageTitle from "../../components/PageTitle"
 
 const CATEGORIES = [
   { value: "all", label: "すべて" },
@@ -104,7 +106,7 @@ export default function Board() {
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <h1>📋 掲示板</h1>
+        <PageTitle icon={<ClipboardList size={20} color="#e07a5f" />} title="掲示板" />
         <button onClick={() => router.push("/board/new")} style={buttonStyle}>
           ＋ 投稿する
         </button>

@@ -2,7 +2,7 @@ import { useRouter } from "next/router"
 import AdBanner from "../components/AdBanner"
 import {
   Map, Cat, ClipboardList, AlertTriangle,
-  Users, Scissors, BookOpen, Heart, Trophy
+  Users, Scissors, BookOpen, Heart, Trophy, Eye
 } from "lucide-react"
 
 export default function Home() {
@@ -77,19 +77,21 @@ export default function Home() {
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             {[
-              { icon: "🗺️", text: "ナワバリを地図で管理" },
-              { icon: "✂️", text: "TNRの記録・予定管理" },
-              { icon: "👀", text: "目撃情報の共有" },
-              { icon: "🙋", text: "ボランティアの連携" },
-              { icon: "⚠️", text: "困りごとの解決" },
-              { icon: "💝", text: "団体への寄付支援" },
+              { icon: <Map size={14} />, text: "ナワバリを地図で管理" },
+              { icon: <Scissors size={14} />, text: "TNRの記録・予定管理" },
+              { icon: <Eye size={14} />, text: "目撃情報の共有" },
+              { icon: <Users size={14} />, text: "ボランティアの連携" },
+              { icon: <AlertTriangle size={14} />, text: "困りごとの解決" },
+              { icon: <Heart size={14} />, text: "団体への寄付支援" },
             ].map((f) => (
               <div key={f.text} style={{
                 padding: "8px 12px", background: "#fff9f5",
                 borderRadius: 10, fontSize: 13, color: "#3d3230",
                 border: "1px solid #f2c4a0",
+                display: "flex", alignItems: "center", gap: 6,
               }}>
-                {f.icon} {f.text}
+                <span style={{ color: "#e07a5f", display: "flex", flexShrink: 0 }}>{f.icon}</span>
+                {f.text}
               </div>
             ))}
           </div>

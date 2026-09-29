@@ -125,6 +125,14 @@ export default function EditProfile() {
       <label style={labelStyle}>団体名</label>
       <input value={profile.organization || ""} onChange={(e) => setProfile({ ...profile, organization: e.target.value })} style={inputStyle} />
 
+      <button
+        type="button"
+        onClick={() => router.push("/org")}
+        style={{ ...teamLinkBtn, marginBottom: 16 }}
+      >
+        チーム管理（複数人での共同編集・招待）へ →
+      </button>
+
       <label style={labelStyle}>ホームページ</label>
       <input placeholder="https://" value={profile.website || ""} onChange={(e) => setProfile({ ...profile, website: e.target.value })} style={inputStyle} />
 
@@ -286,6 +294,12 @@ const badgeCardStyle = {
   display: "flex", alignItems: "center", gap: 12,
   padding: "14px 16px", marginBottom: 20,
   background: "#fff9f5", border: "1px solid #f2c4a0", borderRadius: 14,
+}
+const teamLinkBtn = {
+  display: "block", width: "100%", padding: "10px 12px",
+  background: "#fff9f5", color: "#e07a5f", border: "1px solid #f2c4a0",
+  borderRadius: 12, fontSize: 13, cursor: "pointer", fontFamily: "inherit",
+  textAlign: "left",
 }
 const rankingLinkBtn = {
   display: "flex", alignItems: "center", padding: "6px 12px",

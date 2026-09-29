@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
+import { Settings } from "lucide-react"
 import BulkRegister from "../../components/BulkRegister"
+import BulkRegisterCats from "../../components/BulkRegisterCats"
+import PageTitle from "../../components/PageTitle"
 import { getImageEmbedding, embeddingToVectorLiteral } from "../../lib/catFaceAI"
 
 const TABS = [
@@ -12,7 +15,8 @@ const TABS = [
   { key: "contacts", label: "お問い合わせ" },
   { key: "users", label: "ユーザー" },
   { key: "blacklist", label: "BAN一覧" },
-  { key: "bulk", label: "一括登録" },  // 追加
+  { key: "bulk", label: "一括登録（アカウント）" },
+  { key: "bulk_cats", label: "一括登録（猫）" },  // 追加
   { key: "faceai", label: "顔AI設定" },  // 追加（猫顔識別機能の再計算）
 ]
 
@@ -23,20 +27,35 @@ export default function Admin() {
   const [loading, setLoading] = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [authError, setAuthError] = useState("")
   const [faceAiTargets, setFaceAiTargets] = useState(null) // null = 未確認
   const [faceAiRunning, setFaceAiRunning] = useState(false)
   const [faceAiProgress, setFaceAiProgress] = useState({ done: 0, total: 0, failed: 0 })
 
   useEffect(() => {
     async function checkAdmin() {
-      const { data: userData } = await supabase.auth.getUser()
-      if (!userData.user) { router.push("/login"); return }
-      const { data: profile } = await supabase
-        .from("users").select("role").eq("id", userData.user.id).single()
-      if (profile?.role !== "admin") { router.push("/"); return }
-      // 管理者であることが確認できてから初めてデータ取得・画面表示を許可する
-      setIsAdmin(true)
-      setAuthChecked(true)
+      try {
+        const { data: userData, error: userError } = await supabase.auth.getUser()
+        if (userError) throw userError
+        if (!userData.user) { router.push("/login"); return }
+
+        const { data: profile, error: profileError } = await supabase
+          .from("users").select("role").eq("id", userData.user.id).single()
+        if (profileError) throw profileError
+
+        if (profile?.role !== "admin") { router.push("/"); return }
+        // 管理者であることが確認できてから初めてデータ取得・画面表示を許可する
+        setIsAdmin(true)
+        setAuthChecked(true)
+      } catch (e) {
+        // ここで止めずにエラーを表示する（「確認中...」のまま固まるのを防ぐ）
+        console.log("管理者確認エラー:", e.message)
+        setAuthError(
+          "管理者確認に失敗しました: " + e.message +
+          "（DBのRLSポリシー設定が原因の場合があります。DB/fix_admin_rls_recursion.sql を実行済みか確認してください）"
+        )
+        setAuthChecked(true)
+      }
     }
     checkAdmin()
   }, [])
@@ -160,9 +179,19 @@ export default function Admin() {
     )
   }
 
+  if (authError) {
+    return (
+      <div style={{ maxWidth: 600, margin: "100px auto", padding: 24, textAlign: "center", color: "#c62828" }}>
+        {authError}
+      </div>
+    )
+  }
+
+  if (!isAdmin) return null
+
   return (
     <div style={{ maxWidth: 800, margin: "40px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 24, color: "#3d3230" }}>⚙️ 管理画面</h1>
+      <PageTitle icon={<Settings size={20} color="#e07a5f" />} title="管理画面" />
 
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 24 }}>
         {TABS.map((t) => (
@@ -180,6 +209,8 @@ export default function Admin() {
       {loading && <p style={{ textAlign: "center", color: "#999" }}>読み込み中...</p>}
 
       {tab === "bulk" && <BulkRegister />}
+
+      {tab === "bulk_cats" && <BulkRegisterCats />}
 
       {tab === "faceai" && (
         <div style={cardStyle}>
@@ -234,7 +265,7 @@ export default function Admin() {
         </div>
       )}
 
-      {!["bulk", "faceai"].includes(tab) && data.map((item) => (
+      {!["bulk", "bulk_cats", "faceai"].includes(tab) && data.map((item) => (
         <div key={item.id} style={cardStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div style={{ flex: 1, marginRight: 12 }}>
