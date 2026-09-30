@@ -24,9 +24,29 @@
 //
 // 事前準備: RESEND_API_KEY（未設定の場合は何もせず200を返す。お問い合わせの
 // DB保存自体は完了しているので、フォーム送信そのものは失敗させない）
+//
+// 【2026-09-30追記】送信ボタンを押しても30秒以上「送信中...」のまま固まる
+// という報告を受けた。原因はこのAPI（またはResend/Supabaseへの外部通信）が
+// 遅い・応答が返ってこない場合に、呼び出し元(pages/contact/index.js)が
+// このAPIの応答をawaitしたまま画面を先に進めない実装になっていたこと。
+// 対策として、呼び出し元はこのAPIの応答を待たずに完了画面を表示するように
+// 変更した（お問い合わせ自体はすでにDB保存済みのため）。あわせて、この
+// API自身もResendへの通信1件ごとに8秒のタイムアウトを設け、外部サービスが
+// 応答しない場合でもこの関数が長時間ハングし続けないようにした。
 
 import { createClient } from "@supabase/supabase-js"
 import { Resend } from "resend"
+
+// 指定ミリ秒で応答がなければタイムアウトさせる（Resend/Supabaseへの外部
+// 通信がハングしても、この関数自体が延々と実行され続けないようにするため）
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${label}がタイムアウトしました(${ms}ms)`)), ms)
+    ),
+  ])
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -58,17 +78,25 @@ export default async function handler(req, res) {
   // 1. 管理者へ通知
   try {
     const adminClient = createClient(supabaseUrl, serviceRoleKey)
-    const { data: admins } = await adminClient.from("users").select("email").eq("role", "admin")
+    const { data: admins } = await withTimeout(
+      adminClient.from("users").select("email").eq("role", "admin"),
+      8000,
+      "管理者メールアドレスの取得"
+    )
     const adminEmails = (admins || []).map((a) => a.email).filter(Boolean)
 
     if (adminEmails.length > 0) {
-      await resend.emails.send({
-        from,
-        to: adminEmails,
-        replyTo: email,
-        subject: `【NekoMap】お問い合わせ: ${category}`,
-        text: `お名前: ${name}\nメールアドレス: ${email}\nカテゴリ: ${category}\n\n${message}\n\n---\n管理画面から対応状況を更新できます: ${siteUrl}/admin`,
-      })
+      await withTimeout(
+        resend.emails.send({
+          from,
+          to: adminEmails,
+          replyTo: email,
+          subject: `【NekoMap】お問い合わせ: ${category}`,
+          text: `お名前: ${name}\nメールアドレス: ${email}\nカテゴリ: ${category}\n\n${message}\n\n---\n管理画面から対応状況を更新できます: ${siteUrl}/admin`,
+        }),
+        8000,
+        "管理者宛メール送信"
+      )
       adminSent = true
     } else {
       console.error("問い合わせ通知メール: role='admin'のユーザーが見つかりませんでした")
@@ -79,12 +107,16 @@ export default async function handler(req, res) {
 
   // 2. 送信者本人へ受付完了メール
   try {
-    await resend.emails.send({
-      from,
-      to: email,
-      subject: "【NekoMap】お問い合わせを受け付けました",
-      text: `${name} 様\n\nNekoMapへのお問い合わせありがとうございます。内容を確認の上、担当者よりご連絡いたします。\n\n----- お送りいただいた内容 -----\nカテゴリ: ${category}\n${message}\n--------------------------------\n\n※このメールは送信専用です。返信いただいても内容は届きませんので、ご了承ください。`,
-    })
+    await withTimeout(
+      resend.emails.send({
+        from,
+        to: email,
+        subject: "【NekoMap】お問い合わせを受け付けました",
+        text: `${name} 様\n\nNekoMapへのお問い合わせありがとうございます。内容を確認の上、担当者よりご連絡いたします。\n\n----- お送りいただいた内容 -----\nカテゴリ: ${category}\n${message}\n--------------------------------\n\n※このメールは送信専用です。返信いただいても内容は届きませんので、ご了承ください。`,
+      }),
+      8000,
+      "送信者宛メール送信"
+    )
     confirmSent = true
   } catch (e) {
     console.error("問い合わせ確認メール(送信者宛)送信エラー:", e.message)
