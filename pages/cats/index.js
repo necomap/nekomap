@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Cat, Search, Feather } from "lucide-react"
+import { Cat, Search, Feather, SearchX } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 
 export default function CatList() {
   const router = useRouter()
   const [cats, setCats] = useState([])
   const [search, setSearch] = useState("")
+  const [missingFilter, setMissingFilter] = useState("all")
 
   useEffect(() => {
     async function loadCats() {
@@ -22,11 +23,13 @@ export default function CatList() {
     loadCats()
   }, [])
 
-  const filtered = cats.filter((c) =>
-    search === "" ||
-    c.name?.includes(search) ||
-    c.features?.includes(search)
-  )
+  const filtered = cats
+    .filter((c) =>
+      search === "" ||
+      c.name?.includes(search) ||
+      c.features?.includes(search)
+    )
+    .filter((c) => missingFilter === "all" || (missingFilter === "missing" ? c.missing : !c.missing))
 
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
@@ -47,8 +50,29 @@ export default function CatList() {
         />
       </div>
 
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        {[
+          { value: "all", label: "すべて" },
+          { value: "missing", label: "行方不明のみ" },
+        ].map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => setMissingFilter(opt.value)}
+            style={{
+              ...filterBtn,
+              background: missingFilter === opt.value ? "#e07a5f" : "#f0e6e0",
+              color: missingFilter === opt.value ? "white" : "#9e7b6e",
+            }}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       {filtered.length === 0 && (
-        <p style={{ color: "#999", textAlign: "center" }}>まだ登録された猫がいません</p>
+        <p style={{ color: "#999", textAlign: "center" }}>
+          {missingFilter === "missing" ? "行方不明の猫はいません" : "まだ登録された猫がいません"}
+        </p>
       )}
 
       <div style={{ textAlign: "center", marginBottom: 20 }}>
@@ -79,11 +103,18 @@ export default function CatList() {
                 {cat.features.slice(0, 30)}{cat.features.length > 30 ? "..." : ""}
               </p>
             )}
-            {cat.neutered && (
-              <span style={{ fontSize: 11, background: "#e8f5e9", color: "#2d7a2d", padding: "2px 8px", borderRadius: 12 }}>
-                手術済み
-              </span>
-            )}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {cat.neutered && (
+                <span style={{ fontSize: 11, background: "#e8f5e9", color: "#2d7a2d", padding: "2px 8px", borderRadius: 12 }}>
+                  手術済み
+                </span>
+              )}
+              {cat.missing && (
+                <span style={{ fontSize: 11, background: "#fff3e0", color: "#e65100", padding: "2px 8px", borderRadius: 12, display: "inline-flex", alignItems: "center", gap: 3 }}>
+                  <SearchX size={11} /> 行方不明
+                </span>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -101,6 +132,10 @@ const buttonStyle = {
   padding: "10px 20px", background: "#e07a5f", color: "white",
   border: "none", borderRadius: 20, fontSize: 14, cursor: "pointer",
   fontFamily: "inherit",
+}
+const filterBtn = {
+  padding: "6px 14px", borderRadius: 20, fontSize: 13,
+  border: "none", cursor: "pointer", fontFamily: "inherit",
 }
 const cardStyle = {
   border: "1px solid #f2c4a0", borderRadius: 14, padding: 12,

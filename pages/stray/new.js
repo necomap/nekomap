@@ -4,8 +4,9 @@ import { useRouter } from "next/router"
 import { Cat, Search, MapPin, CheckCircle2, Scissors } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import CatMatchSuggestions from "../../components/CatMatchSuggestions"
-import { searchAddressCandidates } from "../../lib/geocode"
+import { searchAddressCandidates, reverseGeocodeToPrefecture } from "../../lib/geocode"
 import { compressImage } from "../../lib/compressImage"
+import { PREFECTURES } from "../../lib/prefectures"
 import "leaflet/dist/leaflet.css"
 
 export default function NewStray() {
@@ -15,6 +16,7 @@ export default function NewStray() {
   const [photo, setPhoto] = useState(null)
   const [lat, setLat] = useState("")
   const [lng, setLng] = useState("")
+  const [prefecture, setPrefecture] = useState("")
   const [tnrPlanned, setTnrPlanned] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -70,6 +72,16 @@ export default function NewStray() {
       mapInstanceRef.current = null
     }
   }, [])
+
+  // 位置が確定するたびに、都道府県を自動判定する（手動で選び直すこともできる）
+  useEffect(() => {
+    if (!lat || !lng) return
+    let cancelled = false
+    reverseGeocodeToPrefecture(lat, lng).then((pref) => {
+      if (!cancelled && pref) setPrefecture(pref)
+    })
+    return () => { cancelled = true }
+  }, [lat, lng])
 
   async function handleGeocodeSearch() {
     if (!placeQuery.trim()) return
@@ -130,13 +142,14 @@ export default function NewStray() {
       features, comment, photo: photoUrl,
       lat: lat ? parseFloat(lat) : null,
       lng: lng ? parseFloat(lng) : null,
+      prefecture: prefecture || null,
       tnr_planned: tnrPlanned,
       tnr_by: tnrBy,
       created_by: userData.user?.id,
     })
 
     if (error) { setError("投稿に失敗しました"); setLoading(false); return }
-    router.push("/map")
+    router.push("/stray")
   }
 
   return (
@@ -200,6 +213,16 @@ export default function NewStray() {
       {selectedPlace && <p style={{ fontSize: 12, color: "#43a047", marginBottom: 8, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle2 size={13} /> {selectedPlace}</p>}
       <div ref={mapRef} style={{ width: "100%", height: 240, borderRadius: 12, marginBottom: 12, border: "1px solid #f2c4a0" }} />
       {lat && <p style={{ fontSize: 12, color: "#43a047", marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle2 size={13} /> 場所を選択済み</p>}
+
+      <label style={{ display: "block", marginBottom: 4, color: "#9e7b6e", fontSize: 13 }}>
+        都道府県（任意。位置情報から自動入力。違う場合は選び直してください）
+      </label>
+      <select value={prefecture} onChange={(e) => setPrefecture(e.target.value)} style={inputStyle}>
+        <option value="">未設定</option>
+        {PREFECTURES.map((p) => (
+          <option key={p} value={p}>{p}</option>
+        ))}
+      </select>
 
       <label style={{
         display: "flex", alignItems: "center", gap: 10,

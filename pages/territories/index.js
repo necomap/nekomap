@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { Map, Cat } from "lucide-react"
+import { Map, Cat, Pencil } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 
 export default function Territories() {
@@ -46,12 +46,24 @@ export default function Territories() {
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
       <PageTitle icon={<Map size={20} color="#e07a5f" />} title="ナワバリ管理" />
-      <p style={{ color: "#9e7b6e", fontSize: 14, marginBottom: 24 }}>
+      <p style={{ color: "#9e7b6e", fontSize: 14, marginBottom: 12 }}>
         登録済みのナワバリと猫の紐付けを管理できます。
       </p>
 
+      <div style={hintBox}>
+        <p style={{ margin: 0, fontSize: 13, color: "#3d3230", lineHeight: 1.6, display: "flex", alignItems: "flex-start", gap: 6 }}>
+          <Pencil size={14} style={{ marginTop: 2, flexShrink: 0 }} />
+          <span>
+            このページでは新しいナワバリを描くことはできません。ナワバリの新規登録は、地図ページの描画ツール（多角形アイコン）で地図上に範囲を囲むように登録します。登録時に猫との紐付けも行えます。
+          </span>
+        </p>
+        <button onClick={() => router.push("/map")} style={mapLinkBtn}>
+          地図でナワバリを登録する →
+        </button>
+      </div>
+
       {territories.length === 0 && (
-        <p style={{ color: "#999", textAlign: "center" }}>ナワバリが登録されていません</p>
+        <p style={{ color: "#999", textAlign: "center" }}>まだナワバリが登録されていません（上の案内から地図で登録できます）</p>
       )}
 
       {territories.map((t, i) => (
@@ -97,6 +109,15 @@ export default function Territories() {
 const cardStyle = {
   border: "1px solid #f2c4a0", borderRadius: 16,
   padding: 16, marginBottom: 12, background: "white",
+}
+const hintBox = {
+  padding: 14, marginBottom: 20, borderRadius: 12,
+  background: "#fff9f5", border: "1px solid #f2c4a0",
+}
+const mapLinkBtn = {
+  display: "inline-block", marginTop: 10, padding: "6px 14px",
+  background: "#e07a5f", color: "white", border: "none",
+  borderRadius: 20, fontSize: 13, cursor: "pointer", fontFamily: "inherit",
 }
 const selectStyle = {
   padding: "6px 12px", border: "1px solid #f2c4a0",

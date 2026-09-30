@@ -125,6 +125,7 @@ function MapLayers({ visibility, layersRef }) {
             ${escapeHtml(s.features || "")}<br/>
             ${escapeHtml(s.comment || "")}<br/>
             ${s.photo ? `<img src="${escapeHtml(s.photo)}" style="width:100%;margin-top:8px;border-radius:4px"/>` : ""}
+            <br/><a href="/stray" style="color:#e07a5f;font-size:13px">野良猫情報一覧を見る →</a>
           `)
           .addTo(layers.stray)
       })

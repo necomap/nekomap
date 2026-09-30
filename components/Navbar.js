@@ -144,7 +144,7 @@ export default function Navbar() {
             <button onClick={() => go("/sightings")} style={menuBtn}>
               <MapPin size={16} /> 目撃情報
             </button>
-            <button onClick={() => go("/stray/new")} style={menuBtn}>
+            <button onClick={() => go("/stray")} style={menuBtn}>
               <Cat size={16} /> 野良猫出没情報
             </button>
             <button onClick={() => go("/reports")} style={menuBtn}>

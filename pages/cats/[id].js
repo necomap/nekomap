@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import dynamic from "next/dynamic"
-import { Cat, Feather, AlertTriangle, CheckCircle2, Calendar, Scissors, Hospital, ClipboardList, Eye, MapPin } from "lucide-react"
+import { Cat, Feather, AlertTriangle, CheckCircle2, Calendar, Scissors, Hospital, ClipboardList, Eye, MapPin, Search } from "lucide-react"
 
 const CatMap = dynamic(() => import("../../components/CatMap"), { ssr: false })
 
@@ -27,6 +27,9 @@ export default function CatDetail() {
   const [memorialDate, setMemorialDate] = useState("")
   const [showReportForm, setShowReportForm] = useState(false)
   const [reportReason, setReportReason] = useState("")
+  const [showMissingForm, setShowMissingForm] = useState(false)
+  const [missingNote, setMissingNote] = useState("")
+  const [missingDate, setMissingDate] = useState("")
 
   useEffect(() => {
     if (!id) return
@@ -98,6 +101,26 @@ export default function CatDetail() {
     if (error) { alert("記録に失敗しました: " + error.message); return }
     setCat({ ...cat, memorial: true, memorial_note: note, memorial_date: date })
     setShowMemorialForm(false)
+  }
+
+  async function submitMissing() {
+    const note = missingNote.trim() || null
+    const date = missingDate || null
+    const { error } = await supabase.from("cats").update({
+      missing: true, missing_note: note, missing_date: date,
+    }).eq("id", id)
+    if (error) { alert("記録に失敗しました: " + error.message); return }
+    setCat({ ...cat, missing: true, missing_note: note, missing_date: date })
+    setShowMissingForm(false)
+  }
+
+  async function cancelMissing() {
+    if (!confirm(`${cat.name}の行方不明ステータスを解除しますか？（見つかった場合など）`)) return
+    const { error } = await supabase.from("cats").update({
+      missing: false, missing_note: null, missing_date: null,
+    }).eq("id", id)
+    if (error) { alert("更新に失敗しました: " + error.message); return }
+    setCat({ ...cat, missing: false, missing_note: null, missing_date: null })
   }
 
   async function submitReportDeath() {
@@ -231,6 +254,31 @@ export default function CatDetail() {
         </div>
       )}
 
+      {cat.missing && (
+        <div style={missingBanner}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+            <div>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: 15, color: "#e65100", display: "flex", alignItems: "center", gap: 6 }}>
+                <Search size={16} /> {cat.name}は現在行方不明です
+              </p>
+              {cat.missing_date && (
+                <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9e7b6e" }}>最終目撃・失踪日: {cat.missing_date}</p>
+              )}
+              {cat.missing_note && (
+                <p style={{ margin: "8px 0 0", fontSize: 14, color: "#3d3230", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                  {cat.missing_note}
+                </p>
+              )}
+            </div>
+            {isOwnerOrAdmin && (
+              <button onClick={cancelMissing} style={{ ...smallBtn, flexShrink: 0, whiteSpace: "nowrap" }}>
+                見つかった（解除）
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {!cat.memorial && isOwnerOrAdmin && pendingReports.length > 0 && (
         <div style={reportBanner}>
           <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 13, color: "#e65100", display: "flex", alignItems: "center", gap: 6 }}>
@@ -339,6 +387,50 @@ export default function CatDetail() {
           </div>
         ))}
       </div>
+
+      {!cat.memorial && !cat.missing && isOwnerOrAdmin && (
+        <div style={{ marginTop: 32, display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+          <button onClick={() => setShowMissingForm(!showMissingForm)} style={{ ...smallGhostBtn, margin: 0, display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <Search size={13} /> 行方不明として記録する
+          </button>
+        </div>
+      )}
+
+      {!cat.memorial && !cat.missing && isOwnerOrAdmin && showMissingForm && (
+        <div style={{ ...cardStyle, marginTop: 12 }}>
+          <p style={{ margin: "0 0 10px", fontSize: 13, color: "#666", lineHeight: 1.6 }}>
+            {cat.name}を行方不明として記録します。見つかったら「見つかった（解除）」でいつでも戻せます。
+          </p>
+          <textarea
+            placeholder="状況（いつからいなくなったか、心当たりなど。任意）"
+            value={missingNote}
+            onChange={(e) => setMissingNote(e.target.value)}
+            style={{ ...inputStyle, height: 80 }}
+          />
+          <label style={{ display: "block", marginBottom: 12 }}>
+            <span style={{ display: "block", marginBottom: 4, color: "#9e7b6e", fontSize: 13 }}>
+              最終目撃・失踪日（任意・わからなければ空欄でOK）
+            </span>
+            <input
+              type="date"
+              value={missingDate}
+              onChange={(e) => setMissingDate(e.target.value)}
+              style={{ ...inputStyle, marginBottom: 0 }}
+            />
+          </label>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={submitMissing} style={{ ...actionBtn, marginBottom: 0, background: "#e65100" }}>
+              記録する
+            </button>
+            <button
+              onClick={() => { setShowMissingForm(false); setMissingNote(""); setMissingDate("") }}
+              style={{ ...actionBtn, marginBottom: 0, background: "#f0e6e0", color: "#e07a5f" }}
+            >
+              キャンセル
+            </button>
+          </div>
+        </div>
+      )}
 
       {!cat.memorial && isOwnerOrAdmin && (
         <div style={{ marginTop: 32 }}>
@@ -452,6 +544,10 @@ const inputStyle = {
 const memorialBanner = {
   padding: 16, marginBottom: 16, borderRadius: 14,
   background: "#f5f5f5", border: "1px solid #e0e0e0",
+}
+const missingBanner = {
+  padding: 16, marginBottom: 16, borderRadius: 14,
+  background: "#fff3e0", border: "1px solid #ffb74d",
 }
 const reportBanner = {
   padding: 12, marginBottom: 12, borderRadius: 12,
