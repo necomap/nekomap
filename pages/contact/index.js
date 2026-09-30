@@ -34,6 +34,19 @@ export default function Contact() {
     })
 
     if (error) { setError("送信に失敗しました"); setLoading(false); return }
+
+    // 管理者への通知メール・送信者本人への受付完了メールを送る（失敗しても
+    // お問い合わせ自体は保存済みなので、ここのエラーで送信完了画面は止めない）
+    try {
+      await fetch("/api/contact/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, category, message }),
+      })
+    } catch (e) {
+      console.log("問い合わせ通知メールの送信に失敗しました:", e.message)
+    }
+
     setDone(true)
     setLoading(false)
   }

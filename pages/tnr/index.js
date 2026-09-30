@@ -4,6 +4,9 @@ import { useRouter } from "next/router"
 import { Scissors, CheckCircle2, Cat, Calendar, Hospital, Building2, Leaf } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 
+// TNRカレンダー。tnr_schedulesのSELECTポリシーが「活動者アカウント以上
+// （＋投稿者本人・管理者）」に制限されているため、一般アカウント・
+// 未ログインユーザーには予定が1件も返ってこない（自分が投稿した予定を除く）。
 export default function TNRCalendar() {
   const router = useRouter()
   const [schedules, setSchedules] = useState([])
@@ -61,6 +64,10 @@ export default function TNRCalendar() {
           ＋ 予定追加
         </button>
       </div>
+
+      <p style={{ color: "#9e7b6e", fontSize: 13, marginBottom: 16 }}>
+        TNR（捕獲・手術・放猫）の予定は活動者アカウント以上でのみ閲覧できます（一般アカウントには表示されません。自分が登録した予定は表示されます）。
+      </p>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <button onClick={() => setCurrentMonth(new Date(year, month - 1))} style={navButton}>◀</button>
