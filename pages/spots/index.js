@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { MapPin, Toilet, Home, Utensils, Trash2, CheckCircle2 } from "lucide-react"
+import { MapPin, Toilet, Home, Utensils, Trash2, CheckCircle2, Plus } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
+import RegionSelector from "../../components/RegionSelector"
+import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
 
 const TYPE_INFO = {
   toilet: { label: "トイレ", icon: Toilet },
@@ -20,6 +22,7 @@ export default function SpotsList() {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const { region, changeRegion } = useRegionFilter()
 
   useEffect(() => {
     async function init() {
@@ -57,8 +60,8 @@ export default function SpotsList() {
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <PageTitle icon={<MapPin size={20} color="#e07a5f" />} title="スポット一覧" />
-        <button onClick={() => router.push("/spots/new")} style={buttonStyle}>
-          ＋ 登録する
+        <button onClick={() => router.push("/spots/new")} style={{ ...buttonStyle, display: "flex", alignItems: "center", gap: 4 }}>
+          <Plus size={14} /> 登録する
         </button>
       </div>
 
@@ -66,13 +69,15 @@ export default function SpotsList() {
         トイレ・猫ハウス・フード場所の一覧です。フード場所は毒餌被害防止のため、登録者と認証済み団体以外には表示されません。
       </p>
 
+      <RegionSelector region={region ?? ""} onChange={changeRegion} />
+
       {loading && <p style={{ textAlign: "center", color: "#999" }}>読み込み中...</p>}
 
-      {!loading && spots.length === 0 && (
+      {!loading && filterByRegion(spots, region).length === 0 && (
         <p style={{ color: "#999", textAlign: "center" }}>まだスポットが登録されていません</p>
       )}
 
-      {spots.map((s) => {
+      {filterByRegion(spots, region).map((s) => {
         const info = TYPE_INFO[s.type] || { label: s.type, icon: MapPin }
         const Icon = info.icon
         const canDelete = (user && s.created_by === user.id) || profile?.role === "admin"

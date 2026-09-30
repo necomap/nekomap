@@ -1,18 +1,24 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { MapPin, Cat, Trash2 } from "lucide-react"
+import { MapPin, Cat, Trash2, Plus } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
+import RegionSelector from "../../components/RegionSelector"
+import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
 
 // 目撃情報の一覧ページ。
 // 位置情報のぼかしをサーバー側(DB関数)で保証するため、生テーブルではなく
 // get_blurred_sightings RPC経由で取得する（他ページ・地図と同じ方式）。
+// 都道府県での絞り込みのため、座標を含まない最小限のRPC
+// get_sightings_prefectures() の結果をidで結合して使う
+// （プライバシー保護のためget_blurred_sightings自体には手を加えない）。
 export default function SightingsList() {
   const router = useRouter()
   const [sightings, setSightings] = useState([])
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const { region, changeRegion } = useRegionFilter()
 
   useEffect(() => {
     async function init() {
@@ -31,9 +37,16 @@ export default function SightingsList() {
   }, [])
 
   async function loadSightings() {
-    const { data, error } = await supabase.rpc("get_blurred_sightings")
+    const [{ data, error }, { data: prefData, error: prefError }] = await Promise.all([
+      supabase.rpc("get_blurred_sightings"),
+      supabase.rpc("get_sightings_prefectures"),
+    ])
     if (error) { console.log("目撃情報取得エラー:", error.message); return }
-    setSightings((data || []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)))
+    if (prefError) { console.log("目撃情報の都道府県取得エラー:", prefError.message) }
+
+    const prefMap = new Map((prefData || []).map((p) => [p.id, p.prefecture]))
+    const merged = (data || []).map((s) => ({ ...s, prefecture: prefMap.get(s.id) || null }))
+    setSightings(merged.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)))
   }
 
   async function handleDelete(s) {
@@ -47,18 +60,20 @@ export default function SightingsList() {
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <PageTitle icon={<MapPin size={20} color="#e07a5f" />} title="目撃情報一覧" />
-        <button onClick={() => router.push("/sightings/new")} style={buttonStyle}>
-          ＋ 追加
+        <button onClick={() => router.push("/sightings/new")} style={{ ...buttonStyle, display: "flex", alignItems: "center", gap: 4 }}>
+          <Plus size={14} /> 追加
         </button>
       </div>
 
+      <RegionSelector region={region ?? ""} onChange={changeRegion} />
+
       {loading && <p style={{ textAlign: "center", color: "#999" }}>読み込み中...</p>}
 
-      {!loading && sightings.length === 0 && (
+      {!loading && filterByRegion(sightings, region).length === 0 && (
         <p style={{ color: "#999", textAlign: "center" }}>まだ目撃情報がありません</p>
       )}
 
-      {sightings.map((s) => {
+      {filterByRegion(sightings, region).map((s) => {
         const canDelete = (user && s.created_by === user.id) || profile?.role === "admin"
         return (
           <div key={s.id} style={cardStyle}>
