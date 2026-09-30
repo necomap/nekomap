@@ -141,8 +141,8 @@ export default function Navbar() {
             <button onClick={() => go("/map")} style={menuBtn}>
               <Map size={16} /> 地図を見る
             </button>
-            <button onClick={() => go("/sightings/new")} style={menuBtn}>
-              <MapPin size={16} /> 目撃情報を投稿
+            <button onClick={() => go("/sightings")} style={menuBtn}>
+              <MapPin size={16} /> 目撃情報
             </button>
             <button onClick={() => go("/stray/new")} style={menuBtn}>
               <Cat size={16} /> 野良猫出没情報
@@ -150,8 +150,8 @@ export default function Navbar() {
             <button onClick={() => go("/reports")} style={menuBtn}>
               <AlertTriangle size={16} /> 困りごとマップ
             </button>
-            <button onClick={() => go("/spots/new")} style={menuBtn}>
-              <MapPin size={16} /> スポット登録
+            <button onClick={() => go("/spots")} style={menuBtn}>
+              <MapPin size={16} /> スポット
             </button>
             <button onClick={() => go("/territories")} style={menuBtn}>
               <Map size={16} /> ナワバリ管理

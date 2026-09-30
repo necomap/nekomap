@@ -103,6 +103,7 @@ function MapLayers({ visibility, layersRef }) {
             ${escapeHtml(s.description || "")}<br/>
             ${s.photo ? `<img src="${escapeHtml(s.photo)}" style="width:100%;margin-top:8px;border-radius:4px"/>` : ""}
             ${s.cat_id ? `<br/><a href="/cats/${s.cat_id}" style="color:#e07a5f;font-size:13px">🐱 猫の詳細を見る →</a>` : ""}
+            <br/><a href="/sightings" style="color:#e07a5f;font-size:13px">目撃情報一覧を見る →</a>
             ${!isPrivileged ? "<br/><small style='color:#999'>※位置は約100mぼかしています</small>" : ""}
           `)
           .addTo(layers.sightings)
@@ -149,6 +150,7 @@ function MapLayers({ visibility, layersRef }) {
             ${escapeHtml(t.description || "")}<br/>
             <span style="color:${t.status === "対応済" ? "green" : "orange"}">${escapeHtml(t.status)}</span>
             ${t.action ? `<br/>対策: ${escapeHtml(t.action)}` : ""}
+            <br/><a href="/reports" style="color:#e07a5f;font-size:13px">困りごとマップで詳細を見る →</a>
           `)
           .addTo(layers.troubles)
       })
@@ -189,6 +191,7 @@ function MapLayers({ visibility, layersRef }) {
             <b>${emoji} ${escapeHtml(s.type)}</b><br/>
             ${escapeHtml(s.description || "")}
             ${s.verified ? "<br/>✅ 確認済み" : ""}
+            <br/><a href="/spots" style="color:#e07a5f;font-size:13px">スポット一覧を見る →</a>
           `)
           .addTo(layers.spots)
       })
@@ -226,7 +229,12 @@ function MapLayers({ visibility, layersRef }) {
             fillOpacity: 0.25,
             weight: 2,
           },
-        }).addTo(layers.territories)
+        })
+          .bindPopup(`
+            <b>ナワバリ</b><br/>
+            <a href="/territories" style="color:#e07a5f;font-size:13px">ナワバリ管理を見る →</a>
+          `)
+          .addTo(layers.territories)
       })
     }
 

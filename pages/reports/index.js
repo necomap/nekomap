@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
-import { AlertTriangle, MapPin, Users, CheckCircle2 } from "lucide-react"
+import { AlertTriangle, MapPin, Users, CheckCircle2, MessageCircle } from "lucide-react"
 import PageTitle from "../../components/PageTitle"
 import RegionSelector from "../../components/RegionSelector"
 import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
 import FavoriteButton from "../../components/FavoriteButton"
 import { loadFavoriteIds } from "../../lib/favorites"
 import QrCodeButton from "../../components/QrCodeButton"
+import { getOrCreateDmRoom } from "../../lib/chatRoom"
 
 const TYPE_LABELS = {
   feces: "糞尿被害",
@@ -29,6 +30,7 @@ export default function Reports() {
   const [profile, setProfile] = useState(null)
   const [filter, setFilter] = useState("all")
   const [favoriteIds, setFavoriteIds] = useState(new Set())
+  const [contactingId, setContactingId] = useState(null)
   const { region, changeRegion } = useRegionFilter()
 
   useEffect(() => {
@@ -97,6 +99,20 @@ export default function Reports() {
       }
     } catch (e) {
       // 通知送信の失敗は対応登録機能に影響させない
+    }
+  }
+
+  async function handleContact(report) {
+    if (!user) { router.push("/login"); return }
+    if (!report.created_by || user.id === report.created_by) return
+
+    setContactingId(report.id)
+    try {
+      const roomId = await getOrCreateDmRoom(user.id, report.created_by)
+      router.push(`/chat/${roomId}`)
+    } catch (e) {
+      alert("メッセージ機能の準備に失敗しました: " + e.message)
+      setContactingId(null)
     }
   }
 
@@ -209,6 +225,16 @@ export default function Reports() {
             >
               <MapPin size={13} /> 地図で場所を確認する
             </a>
+          )}
+
+          {user && report.created_by && report.created_by !== user.id && (
+            <button
+              onClick={() => handleContact(report)}
+              disabled={contactingId === report.id}
+              style={{ ...volunteerBtn, background: "#f0e6e0", color: "#e07a5f", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+            >
+              {contactingId === report.id ? "準備中..." : <><MessageCircle size={14} /> 投稿者にコンタクトを取る</>}
+            </button>
           )}
 
           {user && report.status === "未対応" && (
