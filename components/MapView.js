@@ -158,20 +158,10 @@ function MapLayers({ visibility, layersRef }) {
     }
 
     // トイレ・ハウス・フードピン（緑系）
+    // 種類ごとの表示可否はcat_spotsのSELECTポリシー側で制御済み
+    // （トイレ：活動者アカウント以上、フード・猫ハウス：団体アカウント（認証済み）
+    // 以上のみ行が返ってくる）なので、ここでは取得できたものをそのまま表示すればよい。
     async function loadCatSpots() {
-      // 一般ユーザーにはフード場所を非表示（サーバー側のRLSでも同様に制限済み。
-      // ここはあくまで表示側の二重の配慮）
-      const { data: userData } = await supabase.auth.getUser()
-      let userType = "general"
-      if (userData.user) {
-        const { data: profile } = await supabase
-          .from("users").select("role, account_type")
-          .eq("id", userData.user.id).single()
-        userType = profile?.role === "admin" ? "admin" :
-                   profile?.account_type === "organization" ? "organization" :
-                   profile?.account_type === "activist" ? "activist" : "general"
-      }
-
       const { data } = await supabase.from("cat_spots").select("*")
       if (!data) return
 
@@ -183,7 +173,6 @@ function MapLayers({ visibility, layersRef }) {
 
       data.forEach((s) => {
         if (!s.lat || !s.lng) return
-        if (s.type === "food" && userType === "general") return
 
         const { emoji, color } = icons[s.type] || { emoji: "📍", color: "#27ae60" }
         const icon = createIcon(emoji, color)(L)
@@ -404,9 +393,8 @@ function LayerToggle({ visibility, onToggle }) {
   )
 }
 
-// 「一般・活動者アカウント」と「認証済み団体アカウント・管理者」で
-// 見える情報が異なる（位置情報のぼかし・フード場所の表示有無）ことを
-// 地図上で一目で分かるようにする、開閉式の説明パネル。
+// アカウント種別によって見える情報が異なる（位置情報のぼかし・トイレ/フード/
+// 猫ハウスの表示有無）ことを地図上で一目で分かるようにする、開閉式の説明パネル。
 function VisibilityInfo() {
   const [open, setOpen] = useState(false)
   return (
@@ -417,12 +405,16 @@ function VisibilityInfo() {
       {open && (
         <div style={infoPanel}>
           <p style={{ margin: "0 0 8px" }}>
-            <b>一般・活動者アカウント</b><br/>
-            位置情報は約100mランダムにぼかして表示されます。フード設置場所（毒餌被害対策）は表示されません。
+            <b>一般アカウント</b><br/>
+            位置情報は約100mランダムにぼかして表示されます。トイレ・フード設置場所・猫ハウスは表示されません。
+          </p>
+          <p style={{ margin: "0 0 8px" }}>
+            <b>活動者アカウント</b><br/>
+            位置情報は約100mランダムにぼかして表示されます。トイレは表示されます。フード設置場所・猫ハウス（毒餌被害対策のため）は今のところ表示されません（今後、状況を見て公開する可能性があります）。
           </p>
           <p style={{ margin: 0 }}>
-            <b>認証済み団体アカウント・管理者</b><br/>
-            正確な位置情報とフード設置場所が表示されます。
+            <b>団体アカウント（認証済み）</b><br/>
+            正確な位置情報と、トイレ・フード設置場所・猫ハウスのすべてが表示されます。
           </p>
         </div>
       )}

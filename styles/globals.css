@@ -8,7 +8,11 @@
 
 body {
   font-family: 'M PLUS Rounded 1c', 'Noto Sans JP', sans-serif;
-  background: #fff9f5;
+  background-color: #fdf1e4;
+  /* うっすらヒョウ柄（/public/patterns/leopard-subtle.svg）。タイル状に
+     継ぎ目なく繰り返せるよう生成した柄なので、background-repeatの
+     デフォルト（repeat）のままでよい */
+  background-image: url('/patterns/leopard-subtle.svg');
   color: #3d3230;
   line-height: 1.7;
 }
@@ -30,7 +34,7 @@ input, textarea, select {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #fff9f5;
+  background: #fdf1e4;
 }
 ::-webkit-scrollbar-thumb {
   background: #f2c4a0;

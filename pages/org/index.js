@@ -112,11 +112,20 @@ export default function OrgTeam() {
     setLastInviteLink(link)
 
     try {
-      await fetch("/api/org/invite-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: inviteEmail.trim(), link, orgName: org.name }),
-      })
+      const { data: sessionData } = await supabase.auth.getSession()
+      const accessToken = sessionData?.session?.access_token
+      // メール本文（宛先・チーム名・リンク）はAPI側でDBの招待レコードから
+      // 取得し直すため、ここではtokenだけを送る（なりすまし送信対策）
+      if (accessToken) {
+        await fetch("/api/org/invite-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ token }),
+        })
+      }
     } catch (e) {
       // メール送信に失敗してもリンクは表示済みなので致命的ではない
     }
