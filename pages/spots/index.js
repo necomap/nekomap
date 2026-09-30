@@ -66,7 +66,7 @@ export default function SpotsList() {
       </div>
 
       <p style={{ color: "#9e7b6e", fontSize: 13, marginBottom: 16 }}>
-        トイレ・猫ハウス・フード場所の一覧です。フード場所は毒餌被害防止のため、登録者と認証済み団体以外には表示されません。
+        トイレ・猫ハウス・フード場所の一覧です。フード場所は毒餌被害防止のため、登録者本人・認証済み団体アカウント・管理者以外（一般・活動者アカウントを含む）には表示されません。
       </p>
 
       <RegionSelector region={region ?? ""} onChange={changeRegion} />

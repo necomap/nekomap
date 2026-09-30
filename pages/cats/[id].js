@@ -378,7 +378,7 @@ export default function CatDetail() {
           <CatMap sightings={sightings} territory={territory} userType={mapUserType} />
         )}
         {!["admin", "organization"].includes(mapUserType) && sightings.some((s) => s.lat && s.lng) && (
-          <p style={{ fontSize: 11, color: "#999", margin: "4px 0 0" }}>※地図上の位置は約100mぼかしています</p>
+          <p style={{ fontSize: 11, color: "#999", margin: "4px 0 0" }}>※一般・活動者アカウントには、地図上の位置を約100mぼかして表示しています（認証済み団体アカウント・管理者には正確な位置が表示されます）</p>
         )}
         {sightings.map((s) => (
           <div key={s.id} style={{ ...tagStyle, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>

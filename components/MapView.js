@@ -6,7 +6,7 @@ import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import { supabase } from "../lib/supabase"
 import { PREFECTURE_CENTERS } from "../lib/prefectures"
-import { Cat, PawPrint, AlertTriangle, MapPin, Home, Map as MapIcon } from "lucide-react"
+import { Cat, PawPrint, AlertTriangle, MapPin, Home, Map as MapIcon, Info, X } from "lucide-react"
 
 // Leafletのpopupは生HTML文字列を描画するため（Reactと違い自動エスケープされない）、
 // ユーザー入力を含む値は必ずこの関数でエスケープしてから埋め込む（保存型XSS対策）
@@ -404,6 +404,32 @@ function LayerToggle({ visibility, onToggle }) {
   )
 }
 
+// 「一般・活動者アカウント」と「認証済み団体アカウント・管理者」で
+// 見える情報が異なる（位置情報のぼかし・フード場所の表示有無）ことを
+// 地図上で一目で分かるようにする、開閉式の説明パネル。
+function VisibilityInfo() {
+  const [open, setOpen] = useState(false)
+  return (
+    <div style={infoContainer}>
+      <button onClick={() => setOpen(!open)} style={infoBtn} title="情報の見え方について">
+        {open ? <X size={13} /> : <Info size={13} />} 見え方について
+      </button>
+      {open && (
+        <div style={infoPanel}>
+          <p style={{ margin: "0 0 8px" }}>
+            <b>一般・活動者アカウント</b><br/>
+            位置情報は約100mランダムにぼかして表示されます。フード設置場所（毒餌被害対策）は表示されません。
+          </p>
+          <p style={{ margin: 0 }}>
+            <b>認証済み団体アカウント・管理者</b><br/>
+            正確な位置情報とフード設置場所が表示されます。
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function MapView() {
   const [visibility, setVisibility] = useState({
     sightings: true, stray: true, troubles: true, spots: true, adoptions: true, territories: true,
@@ -417,6 +443,7 @@ export default function MapView() {
   return (
     <div style={{ position: "relative" }}>
       <LayerToggle visibility={visibility} onToggle={toggleLayer} />
+      <VisibilityInfo />
       <MapContainer
         center={[35.681, 139.767]}
         zoom={13}
@@ -438,4 +465,21 @@ const toggleBtn = {
   padding: "6px 12px", borderRadius: 20, fontSize: 12,
   border: "1px solid", cursor: "pointer", fontFamily: "inherit",
   boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+}
+const infoContainer = {
+  position: "absolute", top: 12, right: 12, zIndex: 1000,
+}
+const infoBtn = {
+  padding: "6px 12px", borderRadius: 20, fontSize: 12,
+  border: "1px solid #f2c4a0", cursor: "pointer", fontFamily: "inherit",
+  background: "white", color: "#9e7b6e",
+  boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+  display: "flex", alignItems: "center", gap: 4,
+}
+const infoPanel = {
+  position: "absolute", top: 36, right: 0,
+  width: 240, padding: 12, borderRadius: 12,
+  background: "white", border: "1px solid #f2c4a0",
+  boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
+  fontSize: 12.5, color: "#3d3230", lineHeight: 1.6,
 }
