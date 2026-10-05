@@ -34,8 +34,6 @@ export default function Home() {
           </p>
         </div>
 
-        <AdBanner />
-
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
           {menus.map((item) => (
             <button

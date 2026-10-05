@@ -6,7 +6,7 @@ export default function Privacy() {
     <div style={{ maxWidth: 640, margin: "40px auto", padding: 24 }}>
       <PageTitle icon={<Shield size={20} color="#e07a5f" />} title="個人情報の取り扱いについて" />
       <p style={{ color: "#9e7b6e", marginBottom: 32, fontSize: 14 }}>
-        最終更新日：2026年3月
+        最終更新日：2026年10月
       </p>
 
       {[
@@ -35,7 +35,11 @@ export default function Privacy() {
           body: "通報された投稿は3件以上の通報で自動的に非表示となり、管理者が確認の上対応します。悪質なユーザーはブラックリストに登録し、再登録を防止します。",
         },
         {
-          title: "7. お問い合わせ",
+          title: "7. 広告について",
+          body: "本サービスは、Amazon.co.jpを宣伝しリンクすることによってサイトが紹介料を獲得できる手段を提供することを目的に設定されたアフィリエイトプログラムである、Amazonアソシエイト・プログラムの参加者です。Amazonのアソシエイトとして、NekoMapは適格販売により収入を得ています。広告リンクには「PR」と表示しています。",
+        },
+        {
+          title: "8. お問い合わせ",
           body: "個人情報の削除・修正をご希望の場合は管理者までご連絡ください。",
         },
       ].map((section) => (

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
-import { Megaphone } from "lucide-react"
+import AmazonPicks from "./AmazonPicks"
 
 // AdSense承認が下りたら true にすると、下の実広告表示に切り替わる。
-// それまでは「スポンサー募集中」の案内をこの枠に表示する。
+// それまではAmazonアソシエイトのテキスト広告（AmazonPicks）をこの枠に表示する。
 const USE_ADSENSE = false
 
 export default function AdBanner({ slot = "auto" }) {
@@ -34,21 +34,5 @@ export default function AdBanner({ slot = "auto" }) {
     )
   }
 
-  return (
-    <a
-      href="/contact"
-      style={{
-        display: "block", margin: "8px 0", padding: "14px 16px",
-        background: "#fff9f5", border: "1px dashed #f2c4a0", borderRadius: 12,
-        textAlign: "center", textDecoration: "none",
-      }}
-    >
-      <p style={{ margin: 0, fontSize: 13, color: "#e07a5f", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-        <Megaphone size={14} /> スポンサー募集中
-      </p>
-      <p style={{ margin: "4px 0 0", fontSize: 12, color: "#9e7b6e" }}>
-        この場所に広告を掲載しませんか？お問い合わせはこちら
-      </p>
-    </a>
-  )
+  return <AmazonPicks />
 }

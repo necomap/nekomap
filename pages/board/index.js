@@ -112,8 +112,6 @@ export default function Board() {
         </button>
       </div>
 
-      <AdBanner />
-
       <RegionSelector region={region ?? ""} onChange={changeRegion} />
 
       <div style={{ position: "relative", marginBottom: 12 }}>
@@ -225,6 +223,8 @@ export default function Board() {
           </div>
         </div>
       ))}
+
+      <AdBanner />
     </div>
   )
 }
@@ -243,4 +243,4 @@ const buttonStyle = {
 const cardStyle = {
   border: "1px solid #f2c4a0", borderRadius: 16, padding: 16, marginBottom: 16,
   background: "white",
-}
+}
