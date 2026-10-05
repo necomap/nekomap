@@ -1,12 +1,18 @@
 import "../styles/globals.css"
 import { useEffect } from "react"
 import Navbar from "../components/Navbar"
+import AdBanner from "../components/AdBanner"
 import { useRouter } from "next/router"
 import { supabase } from "../lib/supabase"
 
 export default function App({ Component, pageProps }) {
   const router = useRouter()
   const hideNavbar = ["/login", "/register"].includes(router.pathname)
+  // 広告（Amazonアソシエイト）は全ページ共通で、各ページの一番下に表示する。
+  // 地図・チャットルームは画面いっぱいの表示のため、ログイン系・管理画面は利用目的上、表示しない。
+  const hideAd = [
+    "/map", "/chat/[room]", "/login", "/register", "/reset-password", "/admin",
+  ].includes(router.pathname)
 
   useEffect(() => {
     // Googleログイン等のOAuth初回サインイン時、usersテーブルに
@@ -52,6 +58,11 @@ export default function App({ Component, pageProps }) {
     <>
       {!hideNavbar && <Navbar />}
       <Component {...pageProps} />
+      {!hideAd && (
+        <div style={{ maxWidth: 600, margin: "0 auto", padding: "0 24px 24px" }}>
+          <AdBanner />
+        </div>
+      )}
     </>
   )
 }

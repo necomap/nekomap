@@ -1,5 +1,4 @@
 import { useRouter } from "next/router"
-import AdBanner from "../components/AdBanner"
 import {
   Map, Cat, ClipboardList, AlertTriangle,
   Users, Scissors, BookOpen, Heart, Trophy, Eye
@@ -94,8 +93,6 @@ export default function Home() {
             ))}
           </div>
         </div>
-
-        <AdBanner />
 
         <p style={{ textAlign: "center", fontSize: 13, color: "#c4a090" }}>
           <a href="/login" style={{ color: "#e07a5f" }}>ログイン</a>

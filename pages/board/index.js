@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/router"
 import { ClipboardList, Search, Users, Cat, Building2, Flag } from "lucide-react"
-import AdBanner from "../../components/AdBanner"
 import RegionSelector from "../../components/RegionSelector"
 import { useRegionFilter, filterByRegion } from "../../lib/useRegionFilter"
 import FavoriteButton from "../../components/FavoriteButton"
@@ -223,8 +222,6 @@ export default function Board() {
           </div>
         </div>
       ))}
-
-      <AdBanner />
     </div>
   )
 }
